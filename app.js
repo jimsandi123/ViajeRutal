@@ -35,7 +35,7 @@ function waTel(num, texto) {
 }
 function waSoporte(texto) { waTel(SOPORTE_WA, texto); }
 function compartirAplicacion() {
-  const enlace = "https://ViajeRural.on.websim.com";
+  const enlace = "https://viajeruralcr.netlify.app";
   window.open(`https://wa.me/?text=${encodeURIComponent(`Viaja con Viaje Rural. Descarga y comparte la aplicación: ${enlace}`)}`, "_blank");
 }
 
