@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Viaje Rural</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00c26b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ PANEL DE LOGUEO (inicio de sesión) ============ -->
+<div id="view-login" class="screen">
+    <div class="login-card">
+        <div class="brand">
+            <div class="logo">🚗</div>
+            <div id="loginDriverId" class="login-driver-id" style="display:none">ID del conductor: <b id="loginDriverIdValue">Escribe tu ID o cédula</b></div>
+            <h1>Viaje Rural</h1>
+            <p>Transporte compartido en tiempo real</p>
+        </div>
+
+        <div class="role-tabs">
+            <button class="role-tab active" data-role="pasajero">Pasajero</button>
+            <button class="role-tab" data-role="conductor">Conductor</button>
+            <button class="role-tab" data-role="admin">Administrador</button>
+        </div>
+
+        <!-- PASajero: entrada sin clave -->
+        <div class="role-panel" id="role-pasajero">
+            <button id="btnEntrarPasajero" class="btn primary big">Entrar como Pasajero</button>
+            <p class="hint">Los pasajeros ingresan sin clave. Si es tu primera vez, completa tu registro.</p>
+        </div>
+
+        <!-- CONDUCTOR: requiere ID/Cédula y clave de acceso -->
+        <div class="role-panel" id="role-conductor" style="display:none">
+            <input type="text" id="inpIdConductor" placeholder="Tu ID o Cédula" autocomplete="username">
+            <input type="password" id="inpClaveConductor" placeholder="Tu clave de conductor" autocomplete="current-password">
+            <button id="btnLoginConductor" class="btn primary big">Ingresar a plataforma</button>
+            <button id="btnSolicitarActivacion" class="btn wa" style="display:none">Solicitar Activación por WhatsApp</button>
+            <p class="lic-days" id="licDiasCond">🔹 Verifica tu clave para ver los días de licencia restantes.</p>
+            <button id="btnAbrirLicencia" class="btn ghost">🔑 Solicitar / Renovar Licencia</button>
+            <button id="btnRegConductor" class="btn ghost">➕ Registro de Conductor</button>
+        </div>
+
+        <!-- ADMIN -->
+        <div class="role-panel" id="role-admin" style="display:none">
+            <input type="password" id="inpClaveAdmin" placeholder="Clave de administrador" autocomplete="off">
+            <button id="btnLoginAdmin" class="btn admin-btn big">Acceder al panel</button>
+        </div>
+
+        <div id="loginMsg" class="feedback"></div>
+
+        <div class="login-foot">
+            <button id="btnTerminosLogin" class="btn ghost small">📄 Términos, Condiciones y Políticas</button>
+            <button id="btnGuiasLogin" class="btn ghost small">📖 Guías de Uso</button>
+            <button id="btnInstalar" class="btn primary small" style="display:none">⬇️ Instalar App en el Escritorio</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL DE LICENCIA ============ -->
+<div id="licModal" class="modal" style="display:none">
+    <div class="modal-card">
+        <h3>🔑 Licencia de Conductor</h3>
+        <div class="lic-info">
+            <label>Tu ID de Usuario</label>
+            <div class="id-row">
+                <span id="miUserId">----</span>
+                <button id="btnCopiarId" class="btn small">Copiar ID</button>
+            </div>
+            <button id="btnWA" class="btn wa">Solicitar / Renovar Licencia por WhatsApp</button>
+        </div>
+        <hr>
+        <label>Pega aquí tu enlace de activación</label>
+        <input type="text" id="inpLicToken" placeholder="Pega tu enlace/token de activación">
+        <button id="btnProcesarLicencia" class="btn primary">Actualizar Licencia</button>
+        <p id="licEstado" class="feedback"></p>
+        <button id="btnCerrarLic" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL DE REGISTRO DE CONDUCTOR ============ -->
+<div id="regCorModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>➕ Registro de Conductor</h3>
+        <p class="lic-days">Registra tus datos y las fotos de tus documentos. El administrador los verificará y activará tu cuenta.</p>
+        <label>Nombre completo</label>
+        <input type="text" id="regConNombre" placeholder="Nombre y apellidos">
+        <label>Cédula (número de identificación)</label>
+        <input type="text" id="regConCedula" placeholder="Ej: 1-1234-5678">
+        <label>📱 Teléfono (WhatsApp)</label>
+        <input type="tel" id="regConTel" placeholder="Ej: 88887777">
+        <label>Correo electrónico</label>
+        <input type="email" id="regConEmail" placeholder="Ej: correo@ejemplo.com">
+        <label>Clave de acceso</label>
+        <input type="text" id="regConClave" placeholder="Clave para ingresar a la plataforma">
+        <label>🚗 Tipo de vehículo</label>
+        <select id="regConTipo"></select>
+        <label>🚙 Marca del vehículo</label>
+        <input type="text" id="regConMarca" placeholder="Ej: Toyota, Hyundai...">
+        <label>🎨 Color del vehículo</label>
+        <input type="text" id="regConColor" placeholder="Ej: Rojo, Blanco, Azul...">
+        <label>🔤 Placa (matrícula)</label>
+        <input type="text" id="regConPlaca" placeholder="Ej: B123456">
+        <label>🧑‍🤝‍🧑 Capacidad de pasajeros</label>
+        <input type="number" id="regConPasajeros" min="1" max="40" value="4">
+        <label>📸 Foto de perfil</label>
+        <input type="file" id="regFotPerfil" accept="image/*">
+        <div class="file-preview" id="previewRegFotPerfil"></div>
+        <label>🚗 Foto del vehículo <b style="color:#e0352f">(obligatoria)</b></label>
+        <input type="file" id="regFotVehiculo" accept="image/*">
+        <div class="file-preview" id="previewRegFotVehiculo"></div>
+        <label>🪪 Foto de licencia de conducir</label>
+        <input type="file" id="regFotLic" accept="image/*">
+        <div class="file-preview" id="previewRegFotLic"></div>
+        <label>🚒 Foto de marchamo</label>
+        <input type="file" id="regFotMarch" accept="image/*">
+        <div class="file-preview" id="previewRegFotMarch"></div>
+        <label>🛠 Foto de revisión técnica (Dekra)</label>
+        <input type="file" id="regFotDekra" accept="image/*">
+        <div class="file-preview" id="previewRegFotDekra"></div>
+        <button id="btnGuardarRegCon" class="btn primary">Registrar y solicitar activación</button>
+        <p class="feedback" id="regConMsg"></p>
+        <button id="btnCerrarRegCon" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL EDITAR CONDUCTOR ============ -->
+<div id="editarCondModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>✏️ Editar Conductor</h3>
+        <input type="hidden" id="edConId">
+        <label>Nombre</label>
+        <input type="text" id="edConNombre">
+        <label>Cédula</label>
+        <input type="text" id="edConCedula">
+        <label>Teléfono (WhatsApp)</label>
+        <input type="tel" id="edConTel">
+        <label>Correo electrónico</label>
+        <input type="email" id="edConEmail">
+        <label>Clave de acceso</label>
+        <input type="text" id="edConClave">
+        <label>Tipo de vehículo</label>
+        <select id="edConTipo"></select>
+        <label>Marca del vehículo</label>
+        <input type="text" id="edConMarca">
+        <label>Color del vehículo</label>
+        <input type="text" id="edConColor">
+        <label>Placa (matrícula)</label>
+        <input type="text" id="edConPlaca">
+        <div class="field"><label>Capacidad de pasajeros</label>
+            <input type="number" id="edConPasajeros" min="1" max="40">
+        </div>
+        <div class="field"><label>Días de licencia (vacío para no cambiar)</label>
+            <input type="number" id="edConDias" min="1" placeholder="Ej: 30">
+        </div>
+        <button id="btnGuardarEditarCond" class="btn primary">Guardar cambios</button>
+        <p class="feedback" id="edConMsg"></p>
+        <button id="btnCerrarEditarCond" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL DE CONFIGURACIÓN ============ -->
+<div id="ajustesModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>⚙️ Configuración</h3>
+        <div id="ajsPerfilCard" class="perfil-card"></div>
+        <label>Nombre</label>
+        <input type="text" id="ajsNombre">
+        <div id="ajsFotoWrap" style="display:none">
+            <label>📸 Foto de perfil</label>
+            <input type="file" id="ajsFoto" accept="image/*">
+        </div>
+        <div id="ajsTarifaWrap" style="display:none">
+            <label>💰 Tarifa por kilómetro (₡ colones)</label>
+            <input type="number" id="ajsTarifaKm" min="0" step="50" placeholder="Ej: 1000">
+        </div>
+        <label>Nueva clave de acceso</label>
+        <input type="text" id="ajsClave" placeholder="Escribe tu nueva clave">
+        <button id="btnGuardarAjustes" class="btn primary">Guardar cambios</button>
+        <button id="btnFinanzasAjustes" class="btn waze" style="display:none">💵 Finanzas de viaje</button>
+        <p class="feedback" id="ajsMsg"></p>
+        <button id="btnCerrarAjustes" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MODAL HISTORIAL DEL CONDUCTOR ============ -->
+<div id="historialModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3 id="historialModalTitle">🗺️ Historial de viajes realizados</h3>
+        <div id="listaHistorialCond"></div>
+        <button id="btnCerrarHistorial" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MODAL VIAJES DEL PASAJERO ============ -->
+<div id="viajesPasModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>🕘 Mis viajes realizados</h3>
+        <div id="listaViajesPasajero"></div>
+        <button id="btnCerrarViajesPas" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MODAL TÉRMINOS ============ -->
+<div id="terminosModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>📄 Términos, Condiciones y Políticas de Uso</h3>
+        <div class="terminos">
+            <p><b>Naturaleza y Responsabilidad:</b> "Viaje Rural" opera exclusivamente como un servicio de intermediación tecnológica que conecta pasajeros y conductores. No presta servicios de transporte, no es propietario de vehículos ni asume responsabilidad por el estado mecánico, cumplimiento, incidentes, retrasos o veracidad de los datos de los usuarios. Las controversias se resuelven directamente entre las partes.</p>
+            <p><b>Para el Pasajero:</b> Solicitud de servicios a terceros independientes. El pago del servicio de transporte se realiza de forma directa e íntegra en efectivo al Conductor al finalizar el viaje. La plataforma no procesa ni recauda dinero por los trayectos.</p>
+            <p><b>Para el Conductor:</b> Registro sujeto a verificación y aprobación de documentos. El servicio tiene un costo mensual de ¢5,000 (cinco mil colones), con un primer mes de uso totalmente gratis a partir del registro exitoso. El impago de la suscripción dentro de los 5 días posteriores al vencimiento ocasionará la suspensión temporal o definitiva de la cuenta. Es responsabilidad del conductor mantener sus documentos al día y brindar un trato seguro.</p>
+            <p><b>Modificaciones:</b> La plataforma se reserva el derecho de modificar los términos en cualquier momento, vigentes desde su publicación.</p>
+        </div>
+        <button id="btnCerrarTerminos" class="btn primary">Entendido</button>
+    </div>
+</div>
+
+<!-- ============ MODAL GUÍAS DE USO ============ -->
+<div id="guiasModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>📖 Guías de Uso</h3>
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-gtab="conductor">Conductor</button>
+            <button class="admin-tab" data-gtab="pasajero">Pasajero</button>
+        </div>
+        <div id="guias-conductor" class="guias-panel">
+            <h4>🚗 Guía rápida del Conductor</h4>
+            <ol class="guia-list">
+                <li>Regístrate si eres nuevo o ingresa con tu <b>ID/Cédula</b> y <b>clave</b>.</li>
+                <li>Activa el botón <b>Activo</b> para compartir tu ubicación y recibir solicitudes.</li>
+                <li>Cuando llega una solicitud tienes <b>15 segundos</b> para aceptarla o pasarla.</li>
+                <li>Al aceptar, el pasajero recibe el PIN de seguridad. El pasajero debe darte ese PIN al abordar.</li>
+                <li>Usa <b>Recoger pasajero</b> para ir al punto de encuentro. Al llegar, ingresa el PIN de 3 dígitos que te indique.</li>
+                <li>Al ingresar el PIN correcto, presiona <b>Iniciar viaje hacia el destino</b> para abrir Waze.</li>
+                <li>Al llegar al destino presiona <b>🏁 Finalizar viaje</b> para cobrar y liberar tu cuenta.</li>
+                <li>Usa el <b>chat</b> para coordinar con el pasajero en tiempo real.</li>
+                <li>Tus finanzas están disponibles en <b>⚙️ Configuración</b>.</li>
+            </ol>
+        </div>
+        <div id="guias-pasajero" class="guias-panel" style="display:none">
+            <h4>🙋 Guía rápida del Pasajero</h4>
+            <ol class="guia-list">
+                <li>Ingresa como pasajero (solo necesitas registrar tu nombre y teléfono la primera vez).</li>
+                <li>Indica <b>cuántas personas viajan</b>: es obligatorio.</li>
+                <li>Agrega una breve referencia del lugar donde estás para facilitar que te encuentren.</li>
+                <li>Selecciona <b>origen</b> y <b>destino</b>, y busca tipos de vehículos disponibles a 5 km.</li>
+                <li>Elige uno o varios tipos; el sistema vuelve a buscar conductores disponibles con capacidad y envía la solicitud.</li>
+                <li>Si no hay respuesta en 15 s, el sistema prueba con el siguiente conductor disponible.</li>
+                <li>Cuando un conductor acepte verás una <b>alerta</b> con el <b>PIN de seguridad</b>.</li>
+                <li>Envías o dices ese PIN al conductor al abordar.</li>
+                <li>Puedes <b>ocultar el mapa</b> para ahorrar datos con el botón flotante 🗺️/Mirar.</li>
+                <li>Sigue al conductor en el mapa y paga en <b>efectivo</b> al finalizar el viaje.</li>
+            </ol>
+        </div>
+        <button id="btnCerrarGuias" class="btn primary">Entendido</button>
+    </div>
+</div>
+
+<!-- ============ MODAL ALERTA VIAJE ACEPTADO (pasajero) ============ -->
+<div id="aceptoModal" class="modal" style="display:none">
+    <div class="modal-card acep-modal">
+        <div class="acep-title">🎉 ¡Viaje Aceptado!</div>
+        <div class="acep-sub">Conductor en camino · llega en <span id="acepEta">calculando…</span></div>
+        <div class="acep-pin">
+            <div class="pin-label">PIN de seguridad</div>
+            <div class="pin-num" id="acepPinNum">---</div>
+            <div class="pin-hint">Muéstralo o dilo a tu conductor al abordar</div>
+        </div>
+        <div id="acepDetalle" class="acep-detalle"></div>
+        <button id="btnCerrarAcepto" class="btn primary big">Entendido</button>
+    </div>
+</div>
+
+<!-- ============ VISTA DEL PASAJERO ============ -->
+<div id="view-pasajero" class="screen" style="display:none">
+    <div class="topbar">
+        <span class="role-badge">Pasajero</span>
+        <span id="pasajeroNombre"></span>
+        <details class="topbar-menu">
+            <summary aria-label="Más opciones">⋮</summary>
+            <div class="topbar-menu-items">
+                <button id="btnGuiasPas" class="btn ghost small">📖 Guías</button>
+                <button id="btnCompartirPas" class="btn ghost small" title="Compartir por WhatsApp">📲 Compartir</button>
+            </div>
+        </details>
+        <button id="btnViajesPas" class="btn ghost small">🕘</button>
+        <button id="btnAjustesPas" class="btn ghost small">⚙️</button>
+        <button id="btnSalirPasajero" class="btn ghost small">Salir</button>
+    </div>
+
+    <!-- registro de pasajero (solo primera vez) -->
+    <div id="regPasajero" class="panel" style="display:none">
+        <h3>Registro de Pasajero</h3>
+        <input type="text" id="regPasNombre" placeholder="Nombre completo">
+        <input type="tel" id="regPasTel" placeholder="Teléfono (WhatsApp)">
+        <label>📸 Foto de perfil</label>
+        <input type="file" id="regPasFoto" accept="image/*">
+        <button id="btnGuardarPasajero" class="btn primary">Guardar y Continuar</button>
+        <p class="feedback" id="regPasMsg"></p>
+        <button id="btnTerminosPas" class="btn ghost small">📄 Términos y Condiciones</button>
+    </div>
+
+    <div id="pasajeroMain" style="display:none">
+        <section class="app-section active" data-pass-view="inicio">
+        <div class="form-box">
+            <div class="field">
+                <label>🧑‍🤝‍🧑 Cantidad de personas que viajan <b style="color:var(--peligro)">*obligatorio</b></label>
+                <input type="number" id="inpCantPasajeros" min="1" max="40" placeholder="Ej: 1">
+            </div>
+            <div class="field">
+                <label for="inpReferencia">📝 Breve referencia para encontrarme</label>
+                <input type="text" id="inpReferencia" maxlength="180" placeholder="Ej: casa azul frente a la pulpería">
+            </div>
+            <div class="field">
+                <label>📍 Mi ubicación actual</label>
+                <div class="dest-row">
+                    <input type="text" id="inpOrigen" placeholder="Tu ubicación GPS o busca un lugar">
+                    <button id="btnUsarGps" class="btn small" title="Usar mi ubicación GPS">📍</button>
+                </div>
+                <div id="origenSugerencias" class="suggest"></div>
+                <div id="origenTxt" class="coords">Detectando tu ubicación GPS...</div>
+            </div>
+            <div class="field">
+                <label>🏁 Destino</label>
+                <div class="dest-row">
+                    <input type="text" id="inpDestino" placeholder="Busca un lugar o dirección">
+                    <button id="btnGuardarFav" class="btn small" title="Guardar como destino favorito">⭐</button>
+                </div>
+                <div id="favChips" class="chip-row"></div>
+                <ul id="destSugerencias" class="suggest"></ul>
+            </div>
+            <p id="viajeMsg" class="feedback" aria-live="polite"></p>
+            <button id="btnBuscarConductores" class="btn primary big">Buscar tipos de vehículos cercanos</button>
+            <div id="opcTipoWrap" style="display:none">
+                <label>🔤 Vehículos disponibles y monto aproximado <small>(elige uno o varios)</small></label>
+                <div id="opcTipos" class="tipo-checks"></div>
+            </div>
+            <button id="btnPedirViaje" class="btn primary big" style="display:none">Buscar y solicitar viaje</button>
+            <button id="btnCancelarViaje" class="btn danger big" style="display:none">Cancelar Viaje</button>
+        </div>
+        </section>
+
+        <section class="app-section" data-pass-view="mapa">
+        <div id="viajeInfo" class="trip-bar" style="display:none">
+            <div id="viajeEstado"></div>
+            <div id="viajePin" class="pin-box" style="display:none"></div>
+            <div id="viajeEta" class="driver-line"></div>
+            <div id="viajePrecio"></div>
+            <div id="viajeConductorDetail"></div>
+            <div id="viajeConductor" class="driver-line"></div>
+        </div>
+        <div id="proxAlert" class="prox-alert" style="display:none">🛎️ Tu conductor está por llegar</div>
+
+        <div class="map-wrap">
+            <div id="mapPasajero" class="map"></div>
+            <button id="btnToggleMapaPas" class="btn map-toggle" title="Ocultar / mostrar el mapa">🗺️ Ocultar mapa</button>
+        </div>
+
+        <div id="condDisponibles" class="panel" style="display:none">
+            <h3>🚗 Conductores disponibles cerca de ti</h3>
+            <div id="listaConductoresCerca"></div>
+        </div>
+        </section>
+        <section class="app-section chat-view" data-pass-view="chat">
+            <div id="chatPasajero" class="chat" style="display:none">
+                <h4>💬 Chat con el conductor</h4>
+                <div id="chatMsgsPas" class="chat-msgs"></div>
+                <div class="chat-row">
+                    <input id="chatInpPas" placeholder="Escribe un mensaje (indicaciones, llegué...)">
+                    <button id="btnSendPas" class="btn small">Enviar</button>
+                </div>
+            </div>
+            <div id="chatPasVacio" class="empty-state"><span class="empty-icon">💬</span><b>Tu chat está en pausa</b><span>Se habilitará cuando un conductor acepte el viaje.</span></div>
+        </section>
+        <nav class="bottom-nav" aria-label="Navegación de pasajero">
+            <button class="nav-item active" data-pass-tab="inicio">🚗<span>Viaje</span></button>
+            <button class="nav-item" data-pass-tab="mapa">🗺️<span>Mapa</span></button>
+            <button class="nav-item" data-pass-tab="chat">💬<span>Chat</span></button>
+            <button class="nav-item" id="btnPerfilPasNav">👤<span>Perfil</span></button>
+        </nav>
+    </div>
+</div>
+
+<!-- ============ VISTA DEL CONDUCTOR ============ -->
+<div id="view-conductor" class="screen" style="display:none">
+    <div class="topbar">
+        <span class="role-badge driver">Conductor</span>
+        <span id="conductorNombre"></span>
+        <details class="topbar-menu">
+            <summary aria-label="Más opciones">⋮</summary>
+            <div class="topbar-menu-items">
+                <button id="btnGuiasCond" class="btn ghost small">📖 Guías</button>
+                <button id="btnCompartirCond" class="btn ghost small" title="Compartir por WhatsApp">📲 Compartir</button>
+            </div>
+        </details>
+        <button id="btnHistorialCond" class="btn ghost small">🕘</button>
+        <button id="btnAjustesCond" class="btn ghost small">⚙️</button>
+        <button id="btnSalirConductor" class="btn ghost small">Salir</button>
+    </div>
+
+    <section class="app-section active" data-cond-view="inicio">
+    <div class="status-strip">
+        <span class="dot" id="onlineDot"></span>
+        <label class="switch-wrap">
+            <span id="onlineTxt">Compartiendo ubicación</span>
+            <button id="btnActivo" class="switch on" aria-pressed="true" type="button"></button>
+        </label>
+        <span id="condId" class="lic-mini"></span>
+        <span id="licCondDias" class="lic-mini"></span>
+    </div>
+
+    <!-- ALERTA DE NUEVA SOLICITUD (solo le llega si es el turno)
+         con cuenta regresiva de 15 segundos y reconocimiento del pasajero -->
+    <div id="alertaViaje" class="alert-card" style="display:none">
+        <div class="alert-title">🔔 Nueva solicitud de viaje</div>
+        <div class="alerta-pass">
+            <img id="alertaFotoPas" alt="" class="rv-avatar">
+            <div>
+                <b id="alertaPasNombre"></b>
+                <div class="t-mini" id="alertaCantPas"></div>
+            </div>
+        </div>
+        <div class="t-mini" id="alertaOrigen"></div>
+        <div class="t-mini" id="alertaReferencia"></div>
+        <div class="t-mini" id="alertaDestino"></div>
+        <div class="t-mini" id="alertaDist"></div>
+        <div class="t-mini" id="alertaTiempo">⏱ Tienes <b>15</b> segundos para responder</div>
+        <div class="btn-row">
+            <button id="btnAceptarAlerta" class="btn primary big">Aceptar solicitud</button>
+            <button id="btnRechazarAlerta" class="btn ghost big">Dejar pasar</button>
+        </div>
+    </div>
+
+    <div id="finArribaWrap" style="display:none">
+        <button id="btnFinalizarViaje" class="btn danger big">🏁 Finalizar viaje</button>
+    </div>
+    <div id="condCancelNotice" class="panel cancel-notice" style="display:none">El pasajero canceló este viaje.</div>
+
+    <!-- estado inactivo -->
+    <div id="panelEspera" class="panel" style="display:none">
+        <h3>👀 Esperando solicitudes</h3>
+        <p class="t-mini">Se te notificará cuando un viaje coincida con tu vehículo y sea tu turno. Mantente activo.</p>
+    </div>
+
+    <!-- viaje activo asignado -->
+    <div id="panelActivo" style="display:none" class="panel">
+        <h3>📍 Viaje asignado</h3>
+        <div class="recogida">
+            <img id="tripFotoPas" alt="" class="rv-avatar lg">
+            <div>
+                <b id="tripPasNombre"></b>
+                <div class="t-mini" id="tripPasTel"></div>
+            </div>
+        </div>
+        <p id="tripDetalle"></p>
+        <button id="btnAbrirPin" class="btn primary" style="display:none">🚗 Recoger pasajero</button>
+        <div id="pinValidBox" style="display:none">
+            <label>🔢 Al llegar, ingresa el PIN de 3 dígitos que te indique el pasajero</label>
+            <input type="hidden" id="inpPinConductor" maxlength="3">
+            <div class="otp" aria-label="PIN de tres dígitos">
+                <input maxlength="1" inputmode="numeric" data-otp="0" aria-label="Primer dígito del PIN">
+                <input maxlength="1" inputmode="numeric" data-otp="1" aria-label="Segundo dígito del PIN">
+                <input maxlength="1" inputmode="numeric" data-otp="2" aria-label="Tercer dígito del PIN">
+            </div>
+            <p class="feedback" id="pinValidMsg"></p>
+            <button id="btnConfirmarPin" class="btn primary" style="display:none">🧭 Iniciar viaje hacia el destino</button>
+        </div>
+    </div>
+    </section>
+    <section class="app-section" data-cond-view="mapa">
+        <div class="map-wrap">
+            <div id="mapConductor" class="map cond-map" style="display:none"></div>
+            <button id="btnToggleMapaCond" class="btn map-toggle">🗺️ Ver mapa</button>
+        </div>
+    </section>
+    <section class="app-section chat-view" data-cond-view="chat">
+        <div class="panel" id="chatConductor" style="display:none">
+            <h3>💬 Chat con el pasajero</h3>
+            <div id="chatMsgsCond" class="chat-msgs"></div>
+            <div class="chat-row">
+                <input id="chatInpCond" placeholder="Escribe un mensaje (indicaciones, llegada...)">
+                <button id="btnSendCond" class="btn small">Enviar</button>
+            </div>
+        </div>
+        <div id="chatCondVacio" class="empty-state"><span class="empty-icon">🚘</span><b>Sin viajes activos</b><span>El chat aparecerá cuando aceptes una solicitud.</span></div>
+    </section>
+    <nav class="bottom-nav" aria-label="Navegación de conductor">
+        <button class="nav-item active" data-cond-tab="inicio">🚘<span>Inicio</span></button>
+        <button class="nav-item" data-cond-tab="mapa">🗺️<span>Mapa</span></button>
+        <button class="nav-item" data-cond-tab="chat">💬<span>Chat</span></button>
+        <button class="nav-item" id="btnPerfilCondNav">👤<span>Perfil</span></button>
+    </nav>
+</div>
+
+<!-- ============ VISTA DEL ADMIN ============ -->
+<div id="view-admin" class="screen" style="display:none">
+    <div class="topbar">
+        <span class="role-badge admin">Admin</span>
+        <span>Panel de control</span>
+        <button id="btnSalirAdmin" class="btn ghost small">Salir</button>
+    </div>
+
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-atab="conductores">Conductores</button>
+        <button class="admin-tab" data-atab="pendientes">Pendientes</button>
+        <button class="admin-tab" data-atab="tipos">Tipos</button>
+        <button class="admin-tab" data-atab="duplicados">Duplicados</button>
+        <button class="admin-tab" data-atab="pasajeros">Pasajeros</button>
+        <button class="admin-tab" data-atab="viajes">Viajes</button>
+    </div>
+
+    <div id="atab-conductores" class="admin-panel">
+        <div class="panel">
+            <h3>➕ Crear Conductor</h3>
+            <input type="text" id="admCondNombre" placeholder="Nombre">
+            <input type="text" id="admCondCedula" placeholder="Cédula">
+            <input type="tel" id="admCondTel" placeholder="Teléfono (WhatsApp)">
+            <input type="email" id="admCondEmail" placeholder="Correo electrónico">
+            <input type="password" id="admCondClave" placeholder="Clave de acceso">
+            <div class="field"><label>Tipo de vehículo</label>
+                <select id="admCondTipo"></select>
+            </div>
+            <input type="text" id="admCondMarca" placeholder="Marca del vehículo">
+            <input type="text" id="admCondColor" placeholder="Color del vehículo">
+            <input type="text" id="admCondPlaca" placeholder="Placa (matrícula)">
+            <div class="field"><label>Capacidad de pasajeros</label>
+                <input type="number" id="admCondPasajeros" value="4" min="1" max="40">
+            </div>
+            <div class="field"><label>Días de licencia iniciales</label>
+                <input type="number" id="admCondDias" value="30" min="1">
+            </div>
+            <button id="btnCrearConductor" class="btn primary">Guardar Conductor</button>
+            <p class="feedback" id="admCondMsg"></p>
+        </div>
+
+        <div class="panel">
+            <h3>🔎 Buscar Conductor</h3>
+            <input type="text" id="admBuscarConductor" placeholder="Buscar por nombre, ID, teléfono o cédula...">
+            <div id="listaConductores"></div>
+        </div>
+    </div>
+
+    <div id="atab-pendientes" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>⏳ Conductores en revisión / pendientes de activar cuenta</h3>
+            <div id="listaPendientes"></div>
+        </div>
+    </div>
+
+    <div id="atab-tipos" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>🚗 Gestión de Tipos de Vehículo</h3>
+            <div id="listaTiposVehiculo"></div>
+            <hr>
+            <label>Nuevo tipo de vehículo</label>
+            <input type="text" id="admTipoNombre" placeholder="Ej: Carga">
+            <input type="text" id="admTipoIcono" placeholder="Icono (emoji, Ej: 🛻)">
+            <div class="field"><label>Capacidad de pasajeros</label>
+                <input type="number" id="admTipoCapacidad" value="4" min="1" max="40">
+            </div>
+            <button id="btnAgregarTipo" class="btn primary">Agregar tipo</button>
+            <p class="feedback" id="admTipoMsg"></p>
+        </div>
+    </div>
+
+    <div id="atab-duplicados" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>⚠️ Conductores Duplicados</h3>
+            <p class="t-mini">Detección automática por cédula, teléfono/WhatsApp o correo electrónico.</p>
+            <div id="listaDuplicados"></div>
+        </div>
+    </div>
+
+    <div id="atab-pasajeros" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>Pasajeros registrados</h3>
+            <div id="listaPasajerosAdmin"></div>
+        </div>
+    </div>
+
+    <div id="atab-viajes" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>Viajes en sistema</h3>
+            <div id="listaViajesAdmin"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
