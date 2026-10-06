@@ -1,0 +1,1498 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://viajerural.netlify.app/index.html
+Subject: Viaje Rural
+Date: Tue, 06 Oct 2026 10:59:25 GMT
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--Awm0TPx6grLMFsKM3V5b5IqdIOaHme2LwTfBtOA9HM----"
+
+
+------MultipartBoundary--Awm0TPx6grLMFsKM3V5b5IqdIOaHme2LwTfBtOA9HM----
+Content-Type: text/html
+Content-ID: <frame-BD93458F883A90C406A04B6EE75EE0FB@mhtml.blink>
+Content-Transfer-Encoding: binary
+Content-Location: https://viajerural.netlify.app/index.html
+
+<!DOCTYPE html><html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=fef1aef7-9447-4428-8dbb-b505cfe7633e
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Viaje Rural</title>
+    <link rel="manifest" href="https://viajerural.netlify.app/manifest.json">
+    <meta name="theme-color" content="#00c26b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://viajerural.netlify.app/icon.svg">
+    <link rel="icon" href="https://viajerural.netlify.app/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://viajerural.netlify.app/styles.css">
+</head>
+<body>
+
+<!-- ============ PANEL DE LOGUEO (inicio de sesión) ============ -->
+<div id="view-login" class="screen">
+    <div class="login-card">
+        <div class="brand">
+            <div class="logo">🚗</div>
+            <div id="loginDriverId" class="login-driver-id" style="display:none">ID del conductor: <b id="loginDriverIdValue">Escribe tu ID o cédula</b></div>
+            <h1>Viaje Rural</h1>
+            <p>Transporte compartido en tiempo real</p>
+        </div>
+
+        <div class="role-tabs">
+            <button class="role-tab active" data-role="pasajero">Pasajero</button>
+            <button class="role-tab" data-role="conductor">Conductor</button>
+            <button class="role-tab" data-role="admin">Administrador</button>
+        </div>
+
+        <!-- PASajero: entrada sin clave -->
+        <div class="role-panel" id="role-pasajero">
+            <button id="btnEntrarPasajero" class="btn primary big">Entrar como Pasajero</button>
+            <p class="hint">Los pasajeros ingresan sin clave. Si es tu primera vez, completa tu registro.</p>
+        </div>
+
+        <!-- CONDUCTOR: requiere ID/Cédula y clave de acceso -->
+        <div class="role-panel" id="role-conductor" style="display:none">
+            <input type="text" id="inpIdConductor" placeholder="Tu ID o Cédula" autocomplete="username">
+            <input type="password" id="inpClaveConductor" placeholder="Tu clave de conductor" autocomplete="current-password">
+            <button id="btnLoginConductor" class="btn primary big">Ingresar a plataforma</button>
+            <button id="btnSolicitarActivacion" class="btn wa" style="display:none">Solicitar Activación por WhatsApp</button>
+            <p class="lic-days" id="licDiasCond">🔹 Verifica tu clave para ver los días de licencia restantes.</p>
+            <button id="btnAbrirLicencia" class="btn ghost">🔑 Solicitar / Renovar Licencia</button>
+            <button id="btnRegConductor" class="btn ghost">➕ Registro de Conductor</button>
+        </div>
+
+        <!-- ADMIN -->
+        <div class="role-panel" id="role-admin" style="display:none">
+            <input type="password" id="inpClaveAdmin" placeholder="Clave de administrador" autocomplete="off">
+            <button id="btnLoginAdmin" class="btn admin-btn big">Acceder al panel</button>
+        </div>
+
+        <div id="loginMsg" class="feedback"></div>
+
+        <div class="login-foot">
+            <button id="btnTerminosLogin" class="btn ghost small">📄 Términos, Condiciones y Políticas</button>
+            <button id="btnGuiasLogin" class="btn ghost small">📖 Guías de Uso</button>
+            <button id="btnInstalar" class="btn primary small" style="display: inline-block;">⬇️ Instalar App en el Escritorio</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL DE LICENCIA ============ -->
+<div id="licModal" class="modal" style="display:none">
+    <div class="modal-card">
+        <h3>🔑 Licencia de Conductor</h3>
+        <div class="lic-info">
+            <label>Tu ID de Usuario</label>
+            <div class="id-row">
+                <span id="miUserId">----</span>
+                <button id="btnCopiarId" class="btn small">Copiar ID</button>
+            </div>
+            <button id="btnWA" class="btn wa">Solicitar / Renovar Licencia por WhatsApp</button>
+        </div>
+        <hr>
+        <label>Pega aquí tu enlace de activación</label>
+        <input type="text" id="inpLicToken" placeholder="Pega tu enlace/token de activación">
+        <button id="btnProcesarLicencia" class="btn primary">Actualizar Licencia</button>
+        <p id="licEstado" class="feedback"></p>
+        <button id="btnCerrarLic" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL DE REGISTRO DE CONDUCTOR ============ -->
+<div id="regCorModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>➕ Registro de Conductor</h3>
+        <p class="lic-days">Registra tus datos y las fotos de tus documentos. El administrador los verificará y activará tu cuenta.</p>
+        <label>Nombre completo</label>
+        <input type="text" id="regConNombre" placeholder="Nombre y apellidos">
+        <label>Cédula (número de identificación)</label>
+        <input type="text" id="regConCedula" placeholder="Ej: 1-1234-5678">
+        <label>📱 Teléfono (WhatsApp)</label>
+        <input type="tel" id="regConTel" placeholder="Ej: 88887777">
+        <label>Correo electrónico</label>
+        <input type="email" id="regConEmail" placeholder="Ej: correo@ejemplo.com">
+        <label>Clave de acceso</label>
+        <input type="text" id="regConClave" placeholder="Clave para ingresar a la plataforma">
+        <label>🚗 Tipo de vehículo</label>
+        <select id="regConTipo"><option value="">Selecciona tipo</option><option value="auto">🚗 Automóvil</option><option value="automvilypickupcarga">🚗 Automóvil y Pick up/ carga</option><option value="buseta">🚐 Buseta</option><option value="carga">🛻 Pick up / Carga</option><option value="moto">🛵 Motocicleta (moto)</option></select>
+        <label>🚙 Marca del vehículo</label>
+        <input type="text" id="regConMarca" placeholder="Ej: Toyota, Hyundai...">
+        <label>🎨 Color del vehículo</label>
+        <input type="text" id="regConColor" placeholder="Ej: Rojo, Blanco, Azul...">
+        <label>🔤 Placa (matrícula)</label>
+        <input type="text" id="regConPlaca" placeholder="Ej: B123456">
+        <label>🧑‍🤝‍🧑 Capacidad de pasajeros</label>
+        <input type="number" id="regConPasajeros" min="1" max="40" value="4">
+        <label>📸 Foto de perfil</label>
+        <input type="file" id="regFotPerfil" accept="image/*">
+        <div class="file-preview" id="previewRegFotPerfil"></div>
+        <label>🚗 Foto del vehículo <b style="color:#e0352f">(obligatoria)</b></label>
+        <input type="file" id="regFotVehiculo" accept="image/*">
+        <div class="file-preview" id="previewRegFotVehiculo"></div>
+        <label>🪪 Foto de licencia de conducir</label>
+        <input type="file" id="regFotLic" accept="image/*">
+        <div class="file-preview" id="previewRegFotLic"></div>
+        <label>🚒 Foto de marchamo</label>
+        <input type="file" id="regFotMarch" accept="image/*">
+        <div class="file-preview" id="previewRegFotMarch"></div>
+        <label>🛠 Foto de revisión técnica (Dekra)</label>
+        <input type="file" id="regFotDekra" accept="image/*">
+        <div class="file-preview" id="previewRegFotDekra"></div>
+        <button id="btnGuardarRegCon" class="btn primary">Registrar y solicitar activación</button>
+        <p class="feedback" id="regConMsg"></p>
+        <button id="btnCerrarRegCon" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL EDITAR CONDUCTOR ============ -->
+<div id="editarCondModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>✏️ Editar Conductor</h3>
+        
+        <label>Nombre</label>
+        <input type="text" id="edConNombre">
+        <label>Cédula</label>
+        <input type="text" id="edConCedula">
+        <label>Teléfono (WhatsApp)</label>
+        <input type="tel" id="edConTel">
+        <label>Correo electrónico</label>
+        <input type="email" id="edConEmail">
+        <label>Clave de acceso</label>
+        <input type="text" id="edConClave">
+        <label>Tipo de vehículo</label>
+        <select id="edConTipo"><option value="">Selecciona tipo</option><option value="auto">🚗 Automóvil</option><option value="automvilypickupcarga">🚗 Automóvil y Pick up/ carga</option><option value="buseta">🚐 Buseta</option><option value="carga">🛻 Pick up / Carga</option><option value="moto">🛵 Motocicleta (moto)</option></select>
+        <label>Marca del vehículo</label>
+        <input type="text" id="edConMarca">
+        <label>Color del vehículo</label>
+        <input type="text" id="edConColor">
+        <label>Placa (matrícula)</label>
+        <input type="text" id="edConPlaca">
+        <div class="field"><label>Capacidad de pasajeros</label>
+            <input type="number" id="edConPasajeros" min="1" max="40">
+        </div>
+        <div class="field"><label>Días de licencia (vacío para no cambiar)</label>
+            <input type="number" id="edConDias" min="1" placeholder="Ej: 30">
+        </div>
+        <button id="btnGuardarEditarCond" class="btn primary">Guardar cambios</button>
+        <p class="feedback" id="edConMsg"></p>
+        <button id="btnCerrarEditarCond" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MICRO-MODAL DE CONFIGURACIÓN ============ -->
+<div id="ajustesModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>⚙️ Configuración</h3>
+        <div id="ajsPerfilCard" class="perfil-card"></div>
+        <label>Nombre</label>
+        <input type="text" id="ajsNombre">
+        <div id="ajsFotoWrap" style="display:none">
+            <label>📸 Foto de perfil</label>
+            <input type="file" id="ajsFoto" accept="image/*">
+        </div>
+        <div id="ajsTarifaWrap" style="display:none">
+            <label>💰 Tarifa por kilómetro (₡ colones)</label>
+            <input type="number" id="ajsTarifaKm" min="0" step="50" placeholder="Ej: 1000">
+        </div>
+        <label>Nueva clave de acceso</label>
+        <input type="text" id="ajsClave" placeholder="Escribe tu nueva clave">
+        <button id="btnGuardarAjustes" class="btn primary">Guardar cambios</button>
+        <button id="btnFinanzasAjustes" class="btn waze" style="display:none">💵 Finanzas de viaje</button>
+        <p class="feedback" id="ajsMsg"></p>
+        <button id="btnCerrarAjustes" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MODAL HISTORIAL DEL CONDUCTOR ============ -->
+<div id="historialModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3 id="historialModalTitle">🗺️ Historial de viajes realizados</h3>
+        <div id="listaHistorialCond"></div>
+        <button id="btnCerrarHistorial" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MODAL VIAJES DEL PASAJERO ============ -->
+<div id="viajesPasModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>🕘 Mis viajes realizados</h3>
+        <div id="listaViajesPasajero"></div>
+        <button id="btnCerrarViajesPas" class="btn ghost small">Cerrar</button>
+    </div>
+</div>
+
+<!-- ============ MODAL TÉRMINOS ============ -->
+<div id="terminosModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>📄 Términos, Condiciones y Políticas de Uso</h3>
+        <div class="terminos">
+            <p><b>Naturaleza y Responsabilidad:</b> "Viaje Rural" opera exclusivamente como un servicio de intermediación tecnológica que conecta pasajeros y conductores. No presta servicios de transporte, no es propietario de vehículos ni asume responsabilidad por el estado mecánico, cumplimiento, incidentes, retrasos o veracidad de los datos de los usuarios. Las controversias se resuelven directamente entre las partes.</p>
+            <p><b>Para el Pasajero:</b> Solicitud de servicios a terceros independientes. El pago del servicio de transporte se realiza de forma directa e íntegra en efectivo al Conductor al finalizar el viaje. La plataforma no procesa ni recauda dinero por los trayectos.</p>
+            <p><b>Para el Conductor:</b> Registro sujeto a verificación y aprobación de documentos. El servicio tiene un costo mensual de ¢5,000 (cinco mil colones), con un primer mes de uso totalmente gratis a partir del registro exitoso. El impago de la suscripción dentro de los 5 días posteriores al vencimiento ocasionará la suspensión temporal o definitiva de la cuenta. Es responsabilidad del conductor mantener sus documentos al día y brindar un trato seguro.</p>
+            <p><b>Modificaciones:</b> La plataforma se reserva el derecho de modificar los términos en cualquier momento, vigentes desde su publicación.</p>
+        </div>
+        <button id="btnCerrarTerminos" class="btn primary">Entendido</button>
+    </div>
+</div>
+
+<!-- ============ MODAL GUÍAS DE USO ============ -->
+<div id="guiasModal" class="modal" style="display:none">
+    <div class="modal-card scroll">
+        <h3>📖 Guías de Uso</h3>
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-gtab="conductor">Conductor</button>
+            <button class="admin-tab" data-gtab="pasajero">Pasajero</button>
+        </div>
+        <div id="guias-conductor" class="guias-panel">
+            <h4>🚗 Guía rápida del Conductor</h4>
+            <ol class="guia-list">
+                <li>Regístrate si eres nuevo o ingresa con tu <b>ID/Cédula</b> y <b>clave</b>.</li>
+                <li>Activa el botón <b>Activo</b> para compartir tu ubicación y recibir solicitudes.</li>
+                <li>Cuando llega una solicitud tienes <b>15 segundos</b> para aceptarla o pasarla.</li>
+                <li>Al aceptar, el pasajero recibe el PIN de seguridad. El pasajero debe darte ese PIN al abordar.</li>
+                <li>Usa <b>Recoger pasajero</b> para ir al punto de encuentro. Al llegar, ingresa el PIN de 3 dígitos que te indique.</li>
+                <li>Al ingresar el PIN correcto, presiona <b>Iniciar viaje hacia el destino</b> para abrir Waze.</li>
+                <li>Al llegar al destino presiona <b>🏁 Finalizar viaje</b> para cobrar y liberar tu cuenta.</li>
+                <li>Usa el <b>chat</b> para coordinar con el pasajero en tiempo real.</li>
+                <li>Tus finanzas están disponibles en <b>⚙️ Configuración</b>.</li>
+            </ol>
+        </div>
+        <div id="guias-pasajero" class="guias-panel" style="display:none">
+            <h4>🙋 Guía rápida del Pasajero</h4>
+            <ol class="guia-list">
+                <li>Ingresa como pasajero (solo necesitas registrar tu nombre y teléfono la primera vez).</li>
+                <li>Indica <b>cuántas personas viajan</b>: es obligatorio.</li>
+                <li>Agrega una breve referencia del lugar donde estás para facilitar que te encuentren.</li>
+                <li>Selecciona <b>origen</b> y <b>destino</b>, y busca tipos de vehículos disponibles a 5 km.</li>
+                <li>Elige uno o varios tipos; el sistema vuelve a buscar conductores disponibles con capacidad y envía la solicitud.</li>
+                <li>Si no hay respuesta en 15 s, el sistema prueba con el siguiente conductor disponible.</li>
+                <li>Cuando un conductor acepte verás una <b>alerta</b> con el <b>PIN de seguridad</b>.</li>
+                <li>Envías o dices ese PIN al conductor al abordar.</li>
+                <li>Puedes <b>ocultar el mapa</b> para ahorrar datos con el botón flotante 🗺️/Mirar.</li>
+                <li>Sigue al conductor en el mapa y paga en <b>efectivo</b> al finalizar el viaje.</li>
+            </ol>
+        </div>
+        <button id="btnCerrarGuias" class="btn primary">Entendido</button>
+    </div>
+</div>
+
+<!-- ============ MODAL ALERTA VIAJE ACEPTADO (pasajero) ============ -->
+<div id="aceptoModal" class="modal" style="display:none">
+    <div class="modal-card acep-modal">
+        <div class="acep-title">🎉 ¡Viaje Aceptado!</div>
+        <div class="acep-sub">Conductor en camino · llega en <span id="acepEta">calculando…</span></div>
+        <div class="acep-pin">
+            <div class="pin-label">PIN de seguridad</div>
+            <div class="pin-num" id="acepPinNum">---</div>
+            <div class="pin-hint">Muéstralo o dilo a tu conductor al abordar</div>
+        </div>
+        <div id="acepDetalle" class="acep-detalle"></div>
+        <button id="btnCerrarAcepto" class="btn primary big">Entendido</button>
+    </div>
+</div>
+
+<!-- ============ VISTA DEL PASAJERO ============ -->
+<div id="view-pasajero" class="screen" style="display:none">
+    <div class="topbar">
+        <span class="role-badge">Pasajero</span>
+        <span id="pasajeroNombre"></span>
+        <details class="topbar-menu">
+            <summary aria-label="Más opciones">⋮</summary>
+            <div class="topbar-menu-items">
+                <button id="btnGuiasPas" class="btn ghost small">📖 Guías</button>
+                <button id="btnCompartirPas" class="btn ghost small" title="Compartir por WhatsApp">📲 Compartir</button>
+            </div>
+        </details>
+        <button id="btnViajesPas" class="btn ghost small">🕘</button>
+        <button id="btnAjustesPas" class="btn ghost small">⚙️</button>
+        <button id="btnSalirPasajero" class="btn ghost small">Salir</button>
+    </div>
+
+    <!-- registro de pasajero (solo primera vez) -->
+    <div id="regPasajero" class="panel" style="display:none">
+        <h3>Registro de Pasajero</h3>
+        <input type="text" id="regPasNombre" placeholder="Nombre completo">
+        <input type="tel" id="regPasTel" placeholder="Teléfono (WhatsApp)">
+        <label>📸 Foto de perfil</label>
+        <input type="file" id="regPasFoto" accept="image/*">
+        <button id="btnGuardarPasajero" class="btn primary">Guardar y Continuar</button>
+        <p class="feedback" id="regPasMsg"></p>
+        <button id="btnTerminosPas" class="btn ghost small">📄 Términos y Condiciones</button>
+    </div>
+
+    <div id="pasajeroMain" style="display:none">
+        <section class="app-section active" data-pass-view="inicio">
+        <div class="form-box">
+            <div class="field">
+                <label>🧑‍🤝‍🧑 Cantidad de personas que viajan <b style="color:var(--peligro)">*obligatorio</b></label>
+                <input type="number" id="inpCantPasajeros" min="1" max="40" placeholder="Ej: 1">
+            </div>
+            <div class="field">
+                <label for="inpReferencia">📝 Breve referencia para encontrarme</label>
+                <input type="text" id="inpReferencia" maxlength="180" placeholder="Ej: casa azul frente a la pulpería">
+            </div>
+            <div class="field">
+                <label>📍 Mi ubicación actual</label>
+                <div class="dest-row">
+                    <input type="text" id="inpOrigen" placeholder="Tu ubicación GPS o busca un lugar">
+                    <button id="btnUsarGps" class="btn small" title="Usar mi ubicación GPS">📍</button>
+                </div>
+                <div id="origenSugerencias" class="suggest"></div>
+                <div id="origenTxt" class="coords">Detectando tu ubicación GPS...</div>
+            </div>
+            <div class="field">
+                <label>🏁 Destino</label>
+                <div class="dest-row">
+                    <input type="text" id="inpDestino" placeholder="Busca un lugar o dirección">
+                    <button id="btnGuardarFav" class="btn small" title="Guardar como destino favorito">⭐</button>
+                </div>
+                <div id="favChips" class="chip-row"></div>
+                <ul id="destSugerencias" class="suggest"></ul>
+            </div>
+            <p id="viajeMsg" class="feedback" aria-live="polite"></p>
+            <button id="btnBuscarConductores" class="btn primary big">Buscar tipos de vehículos cercanos</button>
+            <div id="opcTipoWrap" style="display:none">
+                <label>🔤 Vehículos disponibles y monto aproximado <small>(elige uno o varios)</small></label>
+                <div id="opcTipos" class="tipo-checks"></div>
+            </div>
+            <button id="btnPedirViaje" class="btn primary big" style="display:none">Buscar y solicitar viaje</button>
+            <button id="btnCancelarViaje" class="btn danger big" style="display:none">Cancelar Viaje</button>
+        </div>
+        </section>
+
+        <section class="app-section" data-pass-view="mapa">
+        <div id="viajeInfo" class="trip-bar" style="display:none">
+            <div id="viajeEstado"></div>
+            <div id="viajePin" class="pin-box" style="display:none"></div>
+            <div id="viajeEta" class="driver-line"></div>
+            <div id="viajePrecio"></div>
+            <div id="viajeConductorDetail"></div>
+            <div id="viajeConductor" class="driver-line"></div>
+        </div>
+        <div id="proxAlert" class="prox-alert" style="display:none">🛎️ Tu conductor está por llegar</div>
+
+        <div class="map-wrap">
+            <div id="mapPasajero" class="map"></div>
+            <button id="btnToggleMapaPas" class="btn map-toggle" title="Ocultar / mostrar el mapa">🗺️ Ocultar mapa</button>
+        </div>
+
+        <div id="condDisponibles" class="panel" style="display:none">
+            <h3>🚗 Conductores disponibles cerca de ti</h3>
+            <div id="listaConductoresCerca"></div>
+        </div>
+        </section>
+        <section class="app-section chat-view" data-pass-view="chat">
+            <div id="chatPasajero" class="chat" style="display:none">
+                <h4>💬 Chat con el conductor</h4>
+                <div id="chatMsgsPas" class="chat-msgs"></div>
+                <div class="chat-row">
+                    <input id="chatInpPas" placeholder="Escribe un mensaje (indicaciones, llegué...)">
+                    <button id="btnSendPas" class="btn small">Enviar</button>
+                </div>
+            </div>
+            <div id="chatPasVacio" class="empty-state"><span class="empty-icon">💬</span><b>Tu chat está en pausa</b><span>Se habilitará cuando un conductor acepte el viaje.</span></div>
+        </section>
+        <nav class="bottom-nav" aria-label="Navegación de pasajero">
+            <button class="nav-item active" data-pass-tab="inicio">🚗<span>Viaje</span></button>
+            <button class="nav-item" data-pass-tab="mapa">🗺️<span>Mapa</span></button>
+            <button class="nav-item" data-pass-tab="chat">💬<span>Chat</span></button>
+            <button class="nav-item" id="btnPerfilPasNav">👤<span>Perfil</span></button>
+        </nav>
+    </div>
+</div>
+
+<!-- ============ VISTA DEL CONDUCTOR ============ -->
+<div id="view-conductor" class="screen" style="display:none">
+    <div class="topbar">
+        <span class="role-badge driver">Conductor</span>
+        <span id="conductorNombre"></span>
+        <details class="topbar-menu">
+            <summary aria-label="Más opciones">⋮</summary>
+            <div class="topbar-menu-items">
+                <button id="btnGuiasCond" class="btn ghost small">📖 Guías</button>
+                <button id="btnCompartirCond" class="btn ghost small" title="Compartir por WhatsApp">📲 Compartir</button>
+            </div>
+        </details>
+        <button id="btnHistorialCond" class="btn ghost small">🕘</button>
+        <button id="btnAjustesCond" class="btn ghost small">⚙️</button>
+        <button id="btnSalirConductor" class="btn ghost small">Salir</button>
+    </div>
+
+    <section class="app-section active" data-cond-view="inicio">
+    <div class="status-strip">
+        <span class="dot" id="onlineDot"></span>
+        <label class="switch-wrap">
+            <span id="onlineTxt">Compartiendo ubicación</span>
+            <button id="btnActivo" class="switch on" aria-pressed="true" type="button"></button>
+        </label>
+        <span id="condId" class="lic-mini"></span>
+        <span id="licCondDias" class="lic-mini"></span>
+    </div>
+
+    <!-- ALERTA DE NUEVA SOLICITUD (solo le llega si es el turno)
+         con cuenta regresiva de 15 segundos y reconocimiento del pasajero -->
+    <div id="alertaViaje" class="alert-card" style="display:none">
+        <div class="alert-title">🔔 Nueva solicitud de viaje</div>
+        <div class="alerta-pass">
+            <img id="alertaFotoPas" alt="" class="rv-avatar">
+            <div>
+                <b id="alertaPasNombre"></b>
+                <div class="t-mini" id="alertaCantPas"></div>
+            </div>
+        </div>
+        <div class="t-mini" id="alertaOrigen"></div>
+        <div class="t-mini" id="alertaReferencia"></div>
+        <div class="t-mini" id="alertaDestino"></div>
+        <div class="t-mini" id="alertaDist"></div>
+        <div class="t-mini" id="alertaTiempo">⏱ Tienes <b>15</b> segundos para responder</div>
+        <div class="btn-row">
+            <button id="btnAceptarAlerta" class="btn primary big">Aceptar solicitud</button>
+            <button id="btnRechazarAlerta" class="btn ghost big">Dejar pasar</button>
+        </div>
+    </div>
+
+    <div id="finArribaWrap" style="display:none">
+        <button id="btnFinalizarViaje" class="btn danger big">🏁 Finalizar viaje</button>
+    </div>
+    <div id="condCancelNotice" class="panel cancel-notice" style="display:none">El pasajero canceló este viaje.</div>
+
+    <!-- estado inactivo -->
+    <div id="panelEspera" class="panel" style="display:none">
+        <h3>👀 Esperando solicitudes</h3>
+        <p class="t-mini">Se te notificará cuando un viaje coincida con tu vehículo y sea tu turno. Mantente activo.</p>
+    </div>
+
+    <!-- viaje activo asignado -->
+    <div id="panelActivo" style="display:none" class="panel">
+        <h3>📍 Viaje asignado</h3>
+        <div class="recogida">
+            <img id="tripFotoPas" alt="" class="rv-avatar lg">
+            <div>
+                <b id="tripPasNombre"></b>
+                <div class="t-mini" id="tripPasTel"></div>
+            </div>
+        </div>
+        <p id="tripDetalle"></p>
+        <button id="btnAbrirPin" class="btn primary" style="display:none">🚗 Recoger pasajero</button>
+        <div id="pinValidBox" style="display:none">
+            <label>🔢 Al llegar, ingresa el PIN de 3 dígitos que te indique el pasajero</label>
+            
+            <div class="otp" aria-label="PIN de tres dígitos">
+                <input maxlength="1" inputmode="numeric" data-otp="0" aria-label="Primer dígito del PIN">
+                <input maxlength="1" inputmode="numeric" data-otp="1" aria-label="Segundo dígito del PIN">
+                <input maxlength="1" inputmode="numeric" data-otp="2" aria-label="Tercer dígito del PIN">
+            </div>
+            <p class="feedback" id="pinValidMsg"></p>
+            <button id="btnConfirmarPin" class="btn primary" style="display:none">🧭 Iniciar viaje hacia el destino</button>
+        </div>
+    </div>
+    </section>
+    <section class="app-section" data-cond-view="mapa">
+        <div class="map-wrap">
+            <div id="mapConductor" class="map cond-map" style="display:none"></div>
+            <button id="btnToggleMapaCond" class="btn map-toggle">🗺️ Ver mapa</button>
+        </div>
+    </section>
+    <section class="app-section chat-view" data-cond-view="chat">
+        <div class="panel" id="chatConductor" style="display:none">
+            <h3>💬 Chat con el pasajero</h3>
+            <div id="chatMsgsCond" class="chat-msgs"></div>
+            <div class="chat-row">
+                <input id="chatInpCond" placeholder="Escribe un mensaje (indicaciones, llegada...)">
+                <button id="btnSendCond" class="btn small">Enviar</button>
+            </div>
+        </div>
+        <div id="chatCondVacio" class="empty-state"><span class="empty-icon">🚘</span><b>Sin viajes activos</b><span>El chat aparecerá cuando aceptes una solicitud.</span></div>
+    </section>
+    <nav class="bottom-nav" aria-label="Navegación de conductor">
+        <button class="nav-item active" data-cond-tab="inicio">🚘<span>Inicio</span></button>
+        <button class="nav-item" data-cond-tab="mapa">🗺️<span>Mapa</span></button>
+        <button class="nav-item" data-cond-tab="chat">💬<span>Chat</span></button>
+        <button class="nav-item" id="btnPerfilCondNav">👤<span>Perfil</span></button>
+    </nav>
+</div>
+
+<!-- ============ VISTA DEL ADMIN ============ -->
+<div id="view-admin" class="screen" style="display:none">
+    <div class="topbar">
+        <span class="role-badge admin">Admin</span>
+        <span>Panel de control</span>
+        <button id="btnSalirAdmin" class="btn ghost small">Salir</button>
+    </div>
+
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-atab="conductores">Conductores</button>
+        <button class="admin-tab" data-atab="pendientes">Pendientes</button>
+        <button class="admin-tab" data-atab="tipos">Tipos</button>
+        <button class="admin-tab" data-atab="duplicados">Duplicados</button>
+        <button class="admin-tab" data-atab="pasajeros">Pasajeros</button>
+        <button class="admin-tab" data-atab="viajes">Viajes</button>
+    </div>
+
+    <div id="atab-conductores" class="admin-panel">
+        <div class="panel">
+            <h3>➕ Crear Conductor</h3>
+            <input type="text" id="admCondNombre" placeholder="Nombre">
+            <input type="text" id="admCondCedula" placeholder="Cédula">
+            <input type="tel" id="admCondTel" placeholder="Teléfono (WhatsApp)">
+            <input type="email" id="admCondEmail" placeholder="Correo electrónico">
+            <input type="password" id="admCondClave" placeholder="Clave de acceso">
+            <div class="field"><label>Tipo de vehículo</label>
+                <select id="admCondTipo"><option value="">Selecciona tipo</option><option value="auto">🚗 Automóvil</option><option value="automvilypickupcarga">🚗 Automóvil y Pick up/ carga</option><option value="buseta">🚐 Buseta</option><option value="carga">🛻 Pick up / Carga</option><option value="moto">🛵 Motocicleta (moto)</option></select>
+            </div>
+            <input type="text" id="admCondMarca" placeholder="Marca del vehículo">
+            <input type="text" id="admCondColor" placeholder="Color del vehículo">
+            <input type="text" id="admCondPlaca" placeholder="Placa (matrícula)">
+            <div class="field"><label>Capacidad de pasajeros</label>
+                <input type="number" id="admCondPasajeros" value="4" min="1" max="40">
+            </div>
+            <div class="field"><label>Días de licencia iniciales</label>
+                <input type="number" id="admCondDias" value="30" min="1">
+            </div>
+            <button id="btnCrearConductor" class="btn primary">Guardar Conductor</button>
+            <p class="feedback" id="admCondMsg"></p>
+        </div>
+
+        <div class="panel">
+            <h3>🔎 Buscar Conductor</h3>
+            <input type="text" id="admBuscarConductor" placeholder="Buscar por nombre, ID, teléfono o cédula...">
+            <div id="listaConductores"></div>
+        </div>
+    </div>
+
+    <div id="atab-pendientes" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>⏳ Conductores en revisión / pendientes de activar cuenta</h3>
+            <div id="listaPendientes"></div>
+        </div>
+    </div>
+
+    <div id="atab-tipos" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>🚗 Gestión de Tipos de Vehículo</h3>
+            <div id="listaTiposVehiculo"></div>
+            <hr>
+            <label>Nuevo tipo de vehículo</label>
+            <input type="text" id="admTipoNombre" placeholder="Ej: Carga">
+            <input type="text" id="admTipoIcono" placeholder="Icono (emoji, Ej: 🛻)">
+            <div class="field"><label>Capacidad de pasajeros</label>
+                <input type="number" id="admTipoCapacidad" value="4" min="1" max="40">
+            </div>
+            <button id="btnAgregarTipo" class="btn primary">Agregar tipo</button>
+            <p class="feedback" id="admTipoMsg"></p>
+        </div>
+    </div>
+
+    <div id="atab-duplicados" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>⚠️ Conductores Duplicados</h3>
+            <p class="t-mini">Detección automática por cédula, teléfono/WhatsApp o correo electrónico.</p>
+            <div id="listaDuplicados"></div>
+        </div>
+    </div>
+
+    <div id="atab-pasajeros" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>Pasajeros registrados</h3>
+            <div id="listaPasajerosAdmin"></div>
+        </div>
+    </div>
+
+    <div id="atab-viajes" class="admin-panel" style="display:none">
+        <div class="panel">
+            <h3>Viajes en sistema</h3>
+            <div id="listaViajesAdmin"></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+<iframe id="nl-badge-frame" title="Powered by Netlify" src="cid:frame-9742576A89F2171390F53684632D685E@mhtml.blink" style="position: fixed; bottom: 0px; right: 0px; border: 0px; margin: 0px; padding: 0px; background: transparent; color-scheme: dark; z-index: 2147483645; width: 192px; height: 63px; clip-path: path(&quot;M 3 3 H 179 V 50 H 3 Z&quot;);" data-nl-ready="1"></iframe></body></html>
+------MultipartBoundary--Awm0TPx6grLMFsKM3V5b5IqdIOaHme2LwTfBtOA9HM----
+Content-Type: text/css
+Content-Transfer-Encoding: binary
+Content-Location: https://viajerural.netlify.app/styles.css
+
+@charset "utf-8";
+
+:root { --negro: #111111; --blanco: #ffffff; --gris: #f5f5f5; --gris2: #e8e8e8; --texto: #1c1c1c; --sub: #6b6b6b; --primario: #00c26b; --primario-osc: #00a857; --peligro: #e0352f; --admin: #3333cc; --wa: #25d366; --borde: #e0e0e0; --r-sm: 8px; --r-md: 12px; --r-lg: 18px; --r-full: 999px; --sombra-1: 0 1px 3px rgba(0,0,0,.08); --sombra-2: 0 4px 14px rgba(0,0,0,.10); --sombra-3: 0 12px 34px rgba(0,0,0,.18); --primario-claro: #d9f7e8; --primario-hover: #00b362; }
+
+* { box-sizing: border-box; }
+
+body { margin: 0px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--gris); color: var(--texto); -webkit-tap-highlight-color: transparent; }
+
+.screen { max-width: 680px; margin: 0px auto; min-height: 100vh; background: var(--blanco); }
+
+#pasajeroMain { padding-bottom: 76px; }
+
+#view-conductor, #view-admin { padding-bottom: 72px; }
+
+.topbar .btn.small { padding: 7px 9px; }
+
+.app-section { display: none; min-height: 50vh; }
+
+.app-section.active { display: block; animation: 0.2s ease 0s 1 normal none running fadeUp; }
+
+@keyframes fadeUp { 
+  0% { opacity: 0; transform: translateY(6px); }
+}
+
+.app-section.chat-view { padding: 14px; }
+
+.empty-state { padding: 28px 18px; text-align: center; color: var(--sub); font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+
+.empty-state b { color: var(--texto); font-size: 15px; }
+
+.empty-icon { font-size: 32px; line-height: 1; margin-bottom: 4px; }
+
+.bottom-nav { position: fixed; z-index: 900; bottom: 0px; left: 50%; transform: translateX(-50%); width: min(100%, 680px); display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px max(8px, env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); background: rgba(255, 255, 255, 0.97); border-top: 1px solid var(--borde); box-shadow: rgba(0, 0, 0, 0.08) 0px -4px 14px; }
+
+.nav-item { position: relative; border: 0px; background: transparent; color: var(--sub); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px; font-size: 18px; cursor: pointer; }
+
+.nav-item.active::before { content: ""; position: absolute; top: 0px; left: 50%; transform: translateX(-50%); width: 24px; height: 3px; background: var(--primario); border-radius: 0px 0px 4px 4px; }
+
+.nav-item span { font-size: 11px; font-weight: 650; }
+
+.nav-item.active { color: var(--primario-osc); }
+
+#view-login { display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, rgb(0, 168, 87) 0%, rgb(0, 92, 46) 100%); min-height: 100vh; }
+
+.login-card { width: 92%; max-width: 420px; background: var(--blanco); border-radius: var(--r-full); padding: 26px 22px; box-shadow: rgba(0, 0, 0, 0.35) 0px 18px 50px; }
+
+.brand { text-align: center; margin-bottom: 18px; }
+
+.brand .logo { font-size: 46px; line-height: 1; }
+
+.login-driver-id { width: fit-content; margin: 9px auto 0px; padding: 5px 10px; border-radius: var(--r-full); background: rgb(240, 253, 246); color: var(--sub); font-size: 12px; }
+
+.login-driver-id b { color: var(--primario-osc); font-family: monospace; font-size: 13px; }
+
+.brand h1 { margin: 6px 0px 0px; font-size: 26px; letter-spacing: 0.5px; }
+
+.brand p { margin: 4px 0px 0px; color: var(--sub); font-size: 13px; }
+
+.role-tabs { display: flex; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--borde); margin-bottom: 16px; }
+
+.role-tab { flex: 1 1 0%; padding: 11px 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; background: var(--gris); cursor: pointer; font-weight: 600; color: var(--sub); }
+
+.role-tab.active { background: var(--primario); color: rgb(255, 255, 255); }
+
+.role-panel input { width: 100%; padding: 13px 14px; margin-bottom: 12px; border: 1.5px solid var(--borde); border-radius: var(--r-sm); font-size: 15px; }
+
+.role-panel .hint { color: var(--sub); font-size: 12.5px; margin-top: 10px; text-align: center; }
+
+.lic-days { font-size: 13px; color: var(--sub); background: rgb(240, 253, 246); border: 1px solid rgb(201, 241, 221); padding: 8px 10px; border-radius: var(--r-sm); margin: 8px 0px; }
+
+.admin-btn { background: var(--admin) !important; }
+
+.btn { display: inline-block; width: 100%; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: var(--r-sm); padding: 13px 16px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: transform 0.05s, opacity 0.15s; }
+
+.btn:active { transform: scale(0.98); }
+
+.btn.big { padding: 15px; font-size: 16px; }
+
+.btn.small { width: auto; padding: 8px 14px; font-size: 13px; }
+
+.btn.primary { background: var(--primario); color: rgb(255, 255, 255); }
+
+.btn.primary:hover { background: var(--primario-hover); }
+
+.btn.primary:disabled { background: rgb(159, 220, 192); cursor: default; }
+
+.btn.green { background: var(--primario-osc); color: rgb(255, 255, 255); }
+
+.btn.danger { background: var(--peligro); color: rgb(255, 255, 255); }
+
+.btn.ghost { background: transparent; border: 1.5px solid var(--borde); color: var(--texto); }
+
+.btn.wa { background: var(--wa); color: rgb(255, 255, 255); margin-top: 8px; }
+
+.btn admin-btn { background: var(--admin); }
+
+.feedback { min-height: 0px; font-size: 13.5px; margin-top: 10px; text-align: center; }
+
+.feedback.err { color: var(--peligro); }
+
+.feedback.ok { color: var(--primario-osc); }
+
+.modal { position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.55); z-index: 2000; display: flex; align-items: flex-end; justify-content: center; }
+
+.modal-card { width: 100%; max-width: 460px; background: var(--blanco); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: 22px; animation: 0.25s ease 0s 1 normal none running up; }
+
+@keyframes up { 
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+
+.modal-card h3 { margin: 0px 0px 14px; }
+
+.modal-card label { font-size: 13px; color: var(--sub); display: block; margin: 12px 0px 6px; }
+
+.modal-card hr { border-right-width: medium; border-bottom-width: medium; border-left-width: medium; border-right-style: none; border-bottom-style: none; border-left-style: none; border-right-color: currentcolor; border-bottom-color: currentcolor; border-left-color: currentcolor; border-image: none; border-top: 1px solid var(--borde); margin: 16px 0px; }
+
+.modal-card input, .modal-card select { width: 100%; padding: 12px 14px; border: 1.5px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; background: rgb(255, 255, 255); }
+
+.form-box select, .panel select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1.5px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; background: rgb(255, 255, 255); }
+
+.modal-card input[type="file"] { padding: 9px; background: var(--gris); }
+
+.modal-card.scroll { max-height: 92vh; overflow-y: auto; }
+
+.id-row { display: flex; gap: 8px; align-items: center; }
+
+.id-row span { flex: 1 1 0%; background: var(--gris); padding: 10px 12px; border-radius: var(--r-sm); font-family: monospace; font-size: 15px; }
+
+.topbar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--negro); color: rgb(255, 255, 255); position: sticky; top: 0px; z-index: 500; }
+
+.topbar span { flex: 1 1 0%; font-weight: 600; }
+
+.topbar .role-badge { flex: 0 0 auto; }
+
+.topbar > span:not(.role-badge) { min-width: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.topbar .btn { width: auto; color: rgb(255, 255, 255); border-color: rgb(68, 68, 68); background: transparent; }
+
+.topbar-menu { position: relative; flex: 0 0 auto; }
+
+.topbar-menu summary { list-style: none; display: grid; place-items: center; width: 36px; height: 34px; border: 1px solid rgb(68, 68, 68); border-radius: var(--r-sm); cursor: pointer; font-size: 24px; line-height: 1; }
+
+.topbar-menu summary::-webkit-details-marker { display: none; }
+
+.topbar-menu-items { position: absolute; top: calc(100% + 8px); right: 0px; z-index: 1000; display: grid; gap: 6px; min-width: 150px; padding: 8px; background: rgb(23, 23, 23); border: 1px solid rgb(68, 68, 68); border-radius: var(--r-md); box-shadow: var(--sombra-2); }
+
+.topbar-menu:not([open]) > .topbar-menu-items { display: none; }
+
+.topbar-menu-items .btn { width: 100%; text-align: left; white-space: nowrap; }
+
+.role-badge { padding: 3px 10px; border-radius: var(--r-full); font-size: 12px; background: var(--primario); }
+
+.role-badge.driver { background: rgb(59, 130, 246); }
+
+.role-badge.admin { background: var(--admin); }
+
+.panel { padding: 14px; border-bottom: 1px solid var(--borde); }
+
+.panel h3 { margin: 0px 0px 10px; font-size: 16px; }
+
+.panel input { width: 100%; padding: 11px 12px; margin-bottom: 10px; border: 1.5px solid var(--borde); border-radius: var(--r-sm); font-size: 14px; }
+
+.field { margin-bottom: 10px; }
+
+.field label { font-size: 12.5px; color: var(--sub); display: block; margin-bottom: 5px; }
+
+.form-box .field > input { width: 100%; padding: 12px; border: 1.5px solid var(--borde); border-radius: var(--r-sm); font-size: 15px; background: rgb(255, 255, 255); }
+
+.coords { background: var(--gris); padding: 9px 11px; border-radius: var(--r-sm); font-size: 13px; font-family: monospace; }
+
+.dest-row { display: flex; gap: 8px; }
+
+.dest-row input { flex: 1 1 0%; margin-bottom: 0px; }
+
+.dest-row .btn { width: auto; }
+
+.suggest { list-style: none; margin: 8px 0px 0px; padding: 0px; border: 1px solid var(--borde); border-radius: var(--r-sm); max-height: 180px; overflow: auto; }
+
+.suggest li { padding: 10px 12px; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--gris2); }
+
+.suggest li:last-child { border-bottom-width: medium; border-bottom-style: none; border-bottom-color: currentcolor; }
+
+.suggest li.active { background: var(--gris); }
+
+.form-box { padding: 14px; }
+
+.form-box .btn { margin-top: 6px; }
+
+.trip-bar { background: rgb(239, 253, 246); padding: 12px 14px; border-top: 2px solid var(--primario); }
+
+.trip-bar #viajeEstado { font-weight: 700; margin-bottom: 4px; }
+
+.driver-line { font-size: 13.5px; color: var(--sub); margin-top: 6px; }
+
+.map { height: 48vh; width: 100%; z-index: 1; }
+
+#finArribaWrap { padding: 10px 14px 0px; }
+
+.status-strip { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--gris); font-size: 13px; flex-wrap: wrap; }
+
+.status-strip .btn { width: auto; }
+
+.dot { width: 10px; height: 10px; border-radius: 50%; background: rgb(34, 197, 94); }
+
+.dot.off { background: rgb(107, 114, 128); }
+
+.lic-mini { margin-left: auto; color: var(--sub); font-size: 12px; }
+
+.lic-mini.bad { color: var(--peligro); font-weight: 700; }
+
+.alert-card { margin: 12px 14px; padding: 16px; border: 2px solid var(--primario); border-radius: var(--r-md); background: linear-gradient(160deg, #effdf6, var(--primario-claro)); box-shadow: rgba(0, 194, 107, 0.25) 0px 6px 18px; animation: 1.4s ease-in-out 0s infinite normal none running pulseAlert; }
+
+.alert-title { font-size: 16px; font-weight: 800; color: var(--primario-osc); margin-bottom: 6px; }
+
+.alert-card .t-mini { font-size: 13px; color: var(--texto); margin-top: 4px; }
+
+.alert-card .btn { margin-top: 12px; }
+
+@keyframes pulseAlert { 
+  0%, 100% { box-shadow: rgba(0, 194, 107, 0.25) 0px 6px 18px; }
+  50% { box-shadow: rgba(0, 194, 107, 0.5) 0px 6px 26px; }
+}
+
+.panel .btn-row { display: flex; gap: 8px; }
+
+.panel .btn-row .btn { flex: 1 1 0%; }
+
+.trip-card { border: 1px solid var(--borde); border-radius: var(--r-md); padding: 12px; margin-bottom: 10px; background: rgb(255, 255, 255); box-shadow: var(--sombra-1); transition: box-shadow 0.2s, transform 0.1s; }
+
+.trip-card:active, .cond-card:active { transform: scale(0.995); }
+
+.trip-card .t-mini { font-size: 12px; color: var(--sub); margin-top: 4px; }
+
+.trip-card .btn { margin-top: 8px; }
+
+.cond-card { border: 1px solid var(--borde); border-radius: var(--r-md); padding: 11px; margin-bottom: 10px; box-shadow: var(--sombra-1); transition: box-shadow 0.2s, transform 0.1s; }
+
+.cond-card b { display: block; }
+
+.cond-card .m-mini { font-size: 12.5px; color: var(--sub); margin: 3px 0px; }
+
+.cond-card .badge-ok { color: var(--primario-osc); font-weight: 700; }
+
+.cond-card .badge-bad { color: var(--peligro); font-weight: 700; }
+
+.cond-card .badge-pend { color: rgb(180, 83, 9); font-weight: 700; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+.chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; background: var(--gris2); border: 1px solid var(--borde); border-radius: var(--r-lg); padding: 5px 10px; font-size: 12.5px; cursor: pointer; color: var(--texto); }
+
+.chip.fav { background: rgb(255, 247, 224); border-color: rgb(242, 201, 76); }
+
+.chip .chip-rm { color: var(--peligro); font-weight: 700; padding-left: 4px; }
+
+.chip .chip-rm:hover { text-decoration: none; }
+
+.foto-thumbs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+.foto-thumbs a { position: relative; }
+
+.foto-thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--borde); cursor: zoom-in; }
+
+.foto-thumbs .ft-label { font-size: 10px; color: var(--sub); }
+
+.btn-row-card { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+.btn-row-card .btn { width: auto; flex: 1 1 0%; font-size: 12.5px; padding: 9px 10px; }
+
+.estado-mini { font-size: 11.5px; color: var(--sub); margin-top: 4px; }
+
+.waze-row { margin-top: 10px; }
+
+.btn.waze { flex: 1 1 0%; text-align: center; text-decoration: none; background: rgb(5, 200, 248); color: rgb(255, 255, 255); margin: 0px; padding: 13px; }
+
+.btn.waze:hover { filter: brightness(0.95); }
+
+.admin-tabs { display: flex; overflow-x: auto; border-bottom: 2px solid var(--borde); scrollbar-width: thin; }
+
+.admin-tab { flex: 0 0 auto; min-width: 102px; padding: 12px 10px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; background: none; font-weight: 600; color: var(--sub); cursor: pointer; white-space: nowrap; }
+
+.admin-tab.active { color: var(--admin); border-bottom: 3px solid var(--admin); }
+
+.admin-panel { padding-bottom: 20px; }
+
+button:disabled { opacity: 0.55; cursor: default; }
+
+input:focus, button:focus { outline: 2px solid var(--primario); outline-offset: 1px; }
+
+.car-pin { width: 34px; height: 34px; border-radius: 50%; background: rgb(0, 0, 0); color: rgb(255, 255, 255); font-size: 18px; display: flex; align-items: center; justify-content: center; border: 2px solid rgb(255, 255, 255); box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 8px; }
+
+.dest-pin { font-size: 26px; line-height: 30px; text-shadow: rgba(0, 0, 0, 0.4) 0px 1px 3px; }
+
+.leaflet-container { font-family: inherit; }
+
+.login-foot { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borde); }
+
+.terminos p { font-size: 13.5px; line-height: 1.55; color: var(--texto); margin: 0px 0px 14px; }
+
+.terminos b { color: var(--primario-osc); }
+
+.rv-avatar { width: 46px; height: 46px; object-fit: cover; border-radius: 50%; border: 2px solid var(--primario); }
+
+.rv-avatar.lg { width: 62px; height: 62px; }
+
+.rv-avatar.sm { width: 40px; height: 40px; }
+
+.mini-veh { width: 62px; height: 46px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--borde); margin-top: 4px; display: block; }
+
+.recogida { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; background: var(--gris); padding: 10px; border-radius: var(--r-md); }
+
+.alerta-pass { display: flex; gap: 10px; align-items: center; margin: 8px 0px; }
+
+.cond-head { display: flex; align-items: center; gap: 10px; }
+
+.cond-head-text { flex: 1 1 0%; }
+
+.cond-detalle { background: var(--gris); padding: 10px; border-radius: var(--r-sm); margin-top: 8px; }
+
+.cond-detalle .m-mini { font-size: 12.5px; color: var(--texto); }
+
+.cond-card.warning { border-color: rgb(242, 169, 0); background: rgb(255, 250, 240); }
+
+.expand-avatar { cursor: pointer; }
+
+.switch-wrap { display: flex; align-items: center; gap: 12px; margin-left: 4px; cursor: pointer; }
+
+.switch-wrap > span { flex: 1 1 0%; }
+
+.switch { position: relative; flex: 0 0 auto; width: 52px; height: 30px; padding: 0px; background: rgb(107, 114, 128); border-radius: var(--r-full); border: 0px; transition: background 0.2s; cursor: pointer; }
+
+.switch.on { background: var(--primario); }
+
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: rgb(255, 255, 255); border-radius: 50%; transition: transform 0.2s; }
+
+.switch.on::after { transform: translateX(22px); }
+
+.chat { margin-top: 14px; border-top: 1px solid var(--borde); padding-top: 12px; }
+
+.chat h4 { margin: 0px 0px 8px; font-size: 14px; }
+
+.chat-msgs { background: rgb(250, 250, 250); border: 1px solid var(--borde); border-radius: var(--r-md); padding: 8px; min-height: 110px; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
+.chat-msg { max-width: 82%; display: flex; flex-direction: column; }
+
+.chat-msg .cb { background: rgb(232, 232, 232); padding: 8px 11px; border-radius: var(--r-md); font-size: 14px; overflow-wrap: break-word; }
+
+.chat-msg .cm { font-size: 11px; color: var(--sub); margin-top: 2px; }
+
+.chat-msg.mine { align-self: flex-end; align-items: flex-end; }
+
+.chat-msg.mine .cb { background: var(--primario); color: rgb(255, 255, 255); }
+
+.chat-empty { text-align: center; color: var(--sub); font-size: 13px; padding: 20px 0px; margin: auto; }
+
+.chat-row { display: flex; gap: 8px; margin-top: 8px; }
+
+.chat-row input { flex: 1 1 0%; font-size: 14px; margin: 0px !important; }
+
+.chat-row .btn { width: auto; margin: 0px; white-space: nowrap; }
+
+.tipo-checks { display: flex; flex-direction: column; gap: 8px; margin: 4px 0px 12px; }
+
+.tipo-checks label.tipo-check { display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--borde); border-radius: var(--r-md); padding: 11px 12px; cursor: pointer; background: rgb(255, 255, 255); transition: border-color 0.15s, background 0.15s; }
+
+.tipo-check input { width: auto; margin: 0px; }
+
+.tipo-check:has(input:checked) { border-color: var(--primario); background: rgb(240, 253, 246); }
+
+.tipo-check span { display: flex; flex-direction: column; gap: 3px; }
+
+.tipo-check small { color: var(--sub); font-size: 12px; }
+
+.pin-box { margin: 6px 0px; text-align: center; }
+
+.pin-label { font-size: 12px; color: var(--sub); }
+
+.pin-num { display: inline-block; letter-spacing: 10px; font-size: 34px; font-weight: 800; color: var(--negro); background: var(--gris2); padding: 6px 16px 6px 26px; border-radius: var(--r-md); }
+
+.pin-hint { font-size: 12px; color: var(--sub); margin-top: 4px; }
+
+.otp { display: flex; justify-content: center; gap: 10px; margin: 12px 0px; }
+
+.otp input { width: 54px; height: 60px; border: 1.5px solid var(--borde); border-radius: var(--r-md); background: var(--blanco); color: var(--texto); text-align: center; font-family: inherit; font-size: 28px; font-weight: 700; line-height: 1; }
+
+.file-preview { min-height: 0px; margin: 4px 0px 8px; }
+
+.file-preview:empty { display: none; }
+
+.file-preview img { display: block; width: 80px; height: 80px; object-fit: cover; border: 1px solid var(--borde); border-radius: var(--r-sm); }
+
+.acep-modal { text-align: center; }
+
+.acep-title { font-size: 22px; font-weight: 800; color: var(--primario-osc); }
+
+.acep-sub { color: var(--sub); margin: 2px 0px 14px; }
+
+.acep-pin { background: linear-gradient(160deg, #effdf6, var(--primario-claro)); border: 2px solid var(--primario); border-radius: var(--r-lg); padding: 16px; margin: 8px 0px; }
+
+.acep-detalle { text-align: left; margin: 10px 0px; }
+
+.acep-detalle .recogida { background: var(--gris); }
+
+.prox-alert { position: sticky; top: 120px; z-index: 600; margin: 0px 14px; background: rgb(255, 243, 205); border: 2px solid rgb(242, 201, 76); color: rgb(122, 91, 0); font-weight: 700; text-align: center; padding: 12px; border-radius: var(--r-md); animation: 1.6s ease-in-out 0s infinite normal none running pulseProx; }
+
+@keyframes pulseProx { 
+  0%, 100% { box-shadow: rgba(242, 201, 76, 0.5) 0px 0px 0px 0px; }
+  50% { box-shadow: rgba(242, 201, 76, 0) 0px 0px 0px 10px; }
+}
+
+.map-wrap { position: relative; }
+
+.map { height: 48vh; width: 100%; z-index: 1; }
+
+.cond-map { height: 40vh; }
+
+.btn.map-toggle { position: absolute; top: 12px; right: 12px; z-index: 400; width: auto; background: rgb(255, 255, 255); color: var(--texto); border: 1.5px solid var(--borde); box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 8px; padding: 9px 14px; font-size: 13px; }
+
+.map-wrap:has(button.map-toggle) .btn.map-toggle.bottom { top: auto; bottom: 12px; }
+
+.perfil-card { display: flex; align-items: center; gap: 12px; background: var(--gris); border: 1px solid var(--borde); border-radius: var(--r-md); padding: 12px; margin-bottom: 8px; }
+
+.perfil-card#ajsPerfilCard { display: block; }
+
+.perfil-card img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primario); }
+
+.perfil-card .pf-rows { flex: 1 1 0%; font-size: 13px; }
+
+.perfil-card .pf-rows .m-mini { color: var(--sub); margin: 1px 0px; font-size: 12px; }
+
+.perfil-card .pf-rows b { font-size: 15px; }
+
+.profile-heading { display: flex; gap: 12px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--borde); }
+
+.profile-heading img { width: 56px; height: 56px; object-fit: cover; border-radius: 50%; border: 2px solid var(--primario); }
+
+.profile-rows { padding-top: 5px; }
+
+.profile-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0px; border-bottom: 1px solid var(--borde); font-size: 13px; }
+
+.profile-row span { color: var(--sub); }
+
+.profile-row b { text-align: right; overflow-wrap: anywhere; }
+
+.vehicle-profile-rows { background: rgb(255, 255, 255); border: 1px solid var(--borde); border-radius: var(--r-sm); padding: 0px 10px; }
+
+.vehicle-change-request { margin-top: 12px; }
+
+.vehicle-change-request p { margin: 0px 0px 8px; color: var(--sub); font-size: 12px; }
+
+.vehicle-change-request textarea { display: block; width: 100%; min-height: 76px; margin-bottom: 8px; padding: 10px 12px; border: 1.5px solid var(--borde); border-radius: var(--r-sm); font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 13px; resize: vertical; }
+
+.profile-doc-title { margin: 14px 0px 8px; font-size: 14px; }
+
+.profile-docs { display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 8px; }
+
+.profile-docs a { color: var(--texto); text-decoration: none; border: 1px solid var(--borde); border-radius: var(--r-sm); overflow: hidden; font-size: 12px; }
+
+.profile-docs img { width: 100%; height: 96px; display: block; object-fit: cover; background: var(--gris); }
+
+.profile-docs span { display: block; padding: 6px; }
+
+.cancel-notice { background: rgb(255, 243, 205); color: rgb(121, 90, 0); font-weight: 700; }
+
+.guias-panel { padding-top: 8px; }
+
+.guias-panel h4 { margin: 0px 0px 8px; }
+
+.guia-list { margin: 0px; padding-left: 20px; }
+
+.guia-list li { font-size: 13.5px; line-height: 1.55; margin-bottom: 8px; }
+
+@media (prefers-color-scheme: dark) {
+  :root { --blanco: #151719; --gris: #1c1f22; --gris2: #24282c; --texto: #e8eaed; --sub: #9aa0a6; --borde: #2a2e33; }
+  .login-card, .modal-card { background: rgb(28, 31, 34); color: var(--texto); }
+  .bottom-nav { background: rgba(28, 31, 34, 0.97); }
+  .trip-card, .cond-card { background: rgb(28, 31, 34); color: var(--texto); }
+  .form-box .field > input, .panel input, .modal-card input, .modal-card select, .form-box select, .panel select, .vehicle-change-request textarea { background: rgb(21, 23, 25); color: var(--texto); color-scheme: dark; }
+  .tipo-checks label.tipo-check { background: rgb(28, 31, 34); }
+  .tipo-check:has(input:checked), .trip-bar { background: rgb(29, 51, 40); }
+  .chat-msgs { background: rgb(21, 23, 25); }
+  .chat-msg .cb { background: rgb(42, 46, 51); }
+  .map-toggle { background: rgb(28, 31, 34) !important; color: var(--texto) !important; }
+  .login-driver-id, .lic-days { background: rgb(29, 51, 40); border-color: rgb(40, 90, 64); }
+}
+------MultipartBoundary--Awm0TPx6grLMFsKM3V5b5IqdIOaHme2LwTfBtOA9HM----
+Content-Type: text/css
+Content-Transfer-Encoding: binary
+Content-Location: https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
+
+@charset "utf-8";
+
+.leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { position: absolute; left: 0px; top: 0px; }
+
+.leaflet-container { overflow: hidden; }
+
+.leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow { user-select: none; -webkit-user-drag: none; }
+
+.leaflet-tile::selection { background: transparent; }
+
+.leaflet-safari .leaflet-tile { image-rendering: -webkit-optimize-contrast; }
+
+.leaflet-safari .leaflet-tile-container { width: 1600px; height: 1600px; transform-origin: 0px 0px; }
+
+.leaflet-marker-icon, .leaflet-marker-shadow { display: block; }
+
+.leaflet-container .leaflet-overlay-pane svg { max-width: none !important; max-height: none !important; }
+
+.leaflet-container .leaflet-marker-pane img, .leaflet-container .leaflet-shadow-pane img, .leaflet-container .leaflet-tile-pane img, .leaflet-container img.leaflet-image-layer, .leaflet-container .leaflet-tile { width: auto; padding: 0px; max-width: none !important; max-height: none !important; }
+
+.leaflet-container img.leaflet-tile { mix-blend-mode: plus-lighter; }
+
+.leaflet-container.leaflet-touch-zoom { touch-action: pan-x pan-y; }
+
+.leaflet-container.leaflet-touch-drag { touch-action: pinch-zoom; }
+
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom { touch-action: none; }
+
+.leaflet-container { -webkit-tap-highlight-color: transparent; }
+
+.leaflet-container a { -webkit-tap-highlight-color: rgba(51, 181, 229, 0.4); }
+
+.leaflet-tile { filter: inherit; visibility: hidden; }
+
+.leaflet-tile-loaded { visibility: inherit; }
+
+.leaflet-zoom-box { width: 0px; height: 0px; box-sizing: border-box; z-index: 800; }
+
+.leaflet-overlay-pane svg { }
+
+.leaflet-pane { z-index: 400; }
+
+.leaflet-tile-pane { z-index: 200; }
+
+.leaflet-overlay-pane { z-index: 400; }
+
+.leaflet-shadow-pane { z-index: 500; }
+
+.leaflet-marker-pane { z-index: 600; }
+
+.leaflet-tooltip-pane { z-index: 650; }
+
+.leaflet-popup-pane { z-index: 700; }
+
+.leaflet-map-pane canvas { z-index: 100; }
+
+.leaflet-map-pane svg { z-index: 200; }
+
+.leaflet-vml-shape { width: 1px; height: 1px; }
+
+.lvml { display: inline-block; position: absolute; }
+
+.leaflet-control { position: relative; z-index: 800; pointer-events: auto; }
+
+.leaflet-top, .leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; }
+
+.leaflet-top { top: 0px; }
+
+.leaflet-right { right: 0px; }
+
+.leaflet-bottom { bottom: 0px; }
+
+.leaflet-left { left: 0px; }
+
+.leaflet-control { float: left; clear: both; }
+
+.leaflet-right .leaflet-control { float: right; }
+
+.leaflet-top .leaflet-control { margin-top: 10px; }
+
+.leaflet-bottom .leaflet-control { margin-bottom: 10px; }
+
+.leaflet-left .leaflet-control { margin-left: 10px; }
+
+.leaflet-right .leaflet-control { margin-right: 10px; }
+
+.leaflet-fade-anim .leaflet-popup { opacity: 0; transition: opacity 0.2s linear; }
+
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup { opacity: 1; }
+
+.leaflet-zoom-animated { transform-origin: 0px 0px; }
+
+svg.leaflet-zoom-animated { will-change: transform; }
+
+.leaflet-zoom-anim .leaflet-zoom-animated { transition: transform 0.25s cubic-bezier(0, 0, 0.25, 1); }
+
+.leaflet-zoom-anim .leaflet-tile, .leaflet-pan-anim .leaflet-tile { transition: none; }
+
+.leaflet-zoom-anim .leaflet-zoom-hide { visibility: hidden; }
+
+.leaflet-interactive { cursor: pointer; }
+
+.leaflet-grab { cursor: grab; }
+
+.leaflet-crosshair, .leaflet-crosshair .leaflet-interactive { cursor: crosshair; }
+
+.leaflet-popup-pane, .leaflet-control { cursor: auto; }
+
+.leaflet-dragging .leaflet-grab, .leaflet-dragging .leaflet-grab .leaflet-interactive, .leaflet-dragging .leaflet-marker-draggable { cursor: grabbing; }
+
+.leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-image-layer, .leaflet-pane > svg path, .leaflet-tile-container { pointer-events: none; }
+
+.leaflet-marker-icon.leaflet-interactive, .leaflet-image-layer.leaflet-interactive, .leaflet-pane > svg path.leaflet-interactive, svg.leaflet-image-layer.leaflet-interactive path { pointer-events: auto; }
+
+.leaflet-container { background: rgb(221, 221, 221); outline-offset: 1px; }
+
+.leaflet-container a { color: rgb(0, 120, 168); }
+
+.leaflet-zoom-box { border: 2px dotted rgb(51, 136, 255); background: rgba(255, 255, 255, 0.5); }
+
+.leaflet-container { font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; font-size: 0.75rem; line-height: 1.5; }
+
+.leaflet-bar { box-shadow: rgba(0, 0, 0, 0.65) 0px 1px 5px; border-radius: 4px; }
+
+.leaflet-bar a { background-color: rgb(255, 255, 255); border-bottom: 1px solid rgb(204, 204, 204); width: 26px; height: 26px; line-height: 26px; display: block; text-align: center; text-decoration: none; color: black; }
+
+.leaflet-bar a, .leaflet-control-layers-toggle { background-position: 50% 50%; background-repeat: no-repeat; display: block; }
+
+.leaflet-bar a:hover, .leaflet-bar a:focus { background-color: rgb(244, 244, 244); }
+
+.leaflet-bar a:first-child { border-top-left-radius: 4px; border-top-right-radius: 4px; }
+
+.leaflet-bar a:last-child { border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; border-bottom-width: medium; border-bottom-style: none; border-bottom-color: currentcolor; }
+
+.leaflet-bar a.leaflet-disabled { cursor: default; background-color: rgb(244, 244, 244); color: rgb(187, 187, 187); }
+
+.leaflet-touch .leaflet-bar a { width: 30px; height: 30px; line-height: 30px; }
+
+.leaflet-touch .leaflet-bar a:first-child { border-top-left-radius: 2px; border-top-right-radius: 2px; }
+
+.leaflet-touch .leaflet-bar a:last-child { border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; }
+
+.leaflet-control-zoom-in, .leaflet-control-zoom-out { font: bold 18px "Lucida Console", Monaco, monospace; text-indent: 1px; }
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out { font-size: 22px; }
+
+.leaflet-control-layers { box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 5px; background: rgb(255, 255, 255); border-radius: 5px; }
+
+.leaflet-control-layers-toggle { background-image: url("images/layers.png"); width: 36px; height: 36px; }
+
+.leaflet-retina .leaflet-control-layers-toggle { background-image: url("images/layers-2x.png"); background-size: 26px 26px; }
+
+.leaflet-touch .leaflet-control-layers-toggle { width: 44px; height: 44px; }
+
+.leaflet-control-layers .leaflet-control-layers-list, .leaflet-control-layers-expanded .leaflet-control-layers-toggle { display: none; }
+
+.leaflet-control-layers-expanded .leaflet-control-layers-list { display: block; position: relative; }
+
+.leaflet-control-layers-expanded { padding: 6px 10px 6px 6px; color: rgb(51, 51, 51); background: rgb(255, 255, 255); }
+
+.leaflet-control-layers-scrollbar { overflow: hidden scroll; padding-right: 5px; }
+
+.leaflet-control-layers-selector { margin-top: 2px; position: relative; top: 1px; }
+
+.leaflet-control-layers label { display: block; font-size: 1.08333em; }
+
+.leaflet-control-layers-separator { height: 0px; border-top: 1px solid rgb(221, 221, 221); margin: 5px -10px 5px -6px; }
+
+.leaflet-default-icon-path { background-image: url("images/marker-icon.png"); }
+
+.leaflet-container .leaflet-control-attribution { background: rgba(255, 255, 255, 0.8); margin: 0px; }
+
+.leaflet-control-attribution, .leaflet-control-scale-line { padding: 0px 5px; color: rgb(51, 51, 51); line-height: 1.4; }
+
+.leaflet-control-attribution a { text-decoration: none; }
+
+.leaflet-control-attribution a:hover, .leaflet-control-attribution a:focus { text-decoration: underline; }
+
+.leaflet-attribution-flag { width: 1em; height: 0.6669em; display: inline !important; vertical-align: baseline !important; }
+
+.leaflet-left .leaflet-control-scale { margin-left: 5px; }
+
+.leaflet-bottom .leaflet-control-scale { margin-bottom: 5px; }
+
+.leaflet-control-scale-line { border-width: medium 2px 2px; border-style: none solid solid; border-color: currentcolor rgb(119, 119, 119) rgb(119, 119, 119); border-image: none; line-height: 1.1; padding: 2px 5px 1px; white-space: nowrap; box-sizing: border-box; background: rgba(255, 255, 255, 0.8); text-shadow: rgb(255, 255, 255) 1px 1px; }
+
+.leaflet-control-scale-line:not(:first-child) { border-top: 2px solid rgb(119, 119, 119); border-bottom-width: medium; border-bottom-style: none; border-bottom-color: currentcolor; margin-top: -2px; }
+
+.leaflet-control-scale-line:not(:first-child):not(:last-child) { border-bottom: 2px solid rgb(119, 119, 119); }
+
+.leaflet-touch .leaflet-control-attribution, .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { box-shadow: none; }
+
+.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar { border: 2px solid rgba(0, 0, 0, 0.2); background-clip: padding-box; }
+
+.leaflet-popup { position: absolute; text-align: center; margin-bottom: 20px; }
+
+.leaflet-popup-content-wrapper { padding: 1px; text-align: left; border-radius: 12px; }
+
+.leaflet-popup-content { margin: 13px 24px 13px 20px; line-height: 1.3; font-size: 1.08333em; min-height: 1px; }
+
+.leaflet-popup-content p { margin: 1.3em 0px; }
+
+.leaflet-popup-tip-container { width: 40px; height: 20px; position: absolute; left: 50%; margin-top: -1px; margin-left: -20px; overflow: hidden; pointer-events: none; }
+
+.leaflet-popup-tip { width: 17px; height: 17px; padding: 1px; margin: -10px auto 0px; pointer-events: auto; transform: rotate(45deg); }
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: white; color: rgb(51, 51, 51); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 14px; }
+
+.leaflet-container a.leaflet-popup-close-button { position: absolute; top: 0px; right: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; text-align: center; width: 24px; height: 24px; font: 16px / 24px Tahoma, Verdana, sans-serif; color: rgb(117, 117, 117); text-decoration: none; background: transparent; }
+
+.leaflet-container a.leaflet-popup-close-button:hover, .leaflet-container a.leaflet-popup-close-button:focus { color: rgb(88, 88, 88); }
+
+.leaflet-popup-scrolled { overflow: auto; }
+
+.leaflet-oldie .leaflet-popup-content-wrapper { }
+
+.leaflet-oldie .leaflet-popup-tip { width: 24px; margin: 0px auto; }
+
+.leaflet-oldie .leaflet-control-zoom, .leaflet-oldie .leaflet-control-layers, .leaflet-oldie .leaflet-popup-content-wrapper, .leaflet-oldie .leaflet-popup-tip { border: 1px solid rgb(153, 153, 153); }
+
+.leaflet-div-icon { background: rgb(255, 255, 255); border: 1px solid rgb(102, 102, 102); }
+
+.leaflet-tooltip { position: absolute; padding: 6px; background-color: rgb(255, 255, 255); border: 1px solid rgb(255, 255, 255); border-radius: 3px; color: rgb(34, 34, 34); white-space: nowrap; user-select: none; pointer-events: none; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 3px; }
+
+.leaflet-tooltip.leaflet-interactive { cursor: pointer; pointer-events: auto; }
+
+.leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before, .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { position: absolute; pointer-events: none; border: 6px solid transparent; background: transparent; content: ""; }
+
+.leaflet-tooltip-bottom { margin-top: 6px; }
+
+.leaflet-tooltip-top { margin-top: -6px; }
+
+.leaflet-tooltip-bottom::before, .leaflet-tooltip-top::before { left: 50%; margin-left: -6px; }
+
+.leaflet-tooltip-top::before { bottom: 0px; margin-bottom: -12px; border-top-color: rgb(255, 255, 255); }
+
+.leaflet-tooltip-bottom::before { top: 0px; margin-top: -12px; margin-left: -6px; border-bottom-color: rgb(255, 255, 255); }
+
+.leaflet-tooltip-left { margin-left: -6px; }
+
+.leaflet-tooltip-right { margin-left: 6px; }
+
+.leaflet-tooltip-left::before, .leaflet-tooltip-right::before { top: 50%; margin-top: -6px; }
+
+.leaflet-tooltip-left::before { right: 0px; margin-right: -12px; border-left-color: rgb(255, 255, 255); }
+
+.leaflet-tooltip-right::before { left: 0px; margin-left: -12px; border-right-color: rgb(255, 255, 255); }
+
+@media print {
+  .leaflet-control { print-color-adjust: exact; }
+}
+------MultipartBoundary--Awm0TPx6grLMFsKM3V5b5IqdIOaHme2LwTfBtOA9HM----
+Content-Type: text/html
+Content-ID: <frame-9742576A89F2171390F53684632D685E@mhtml.blink>
+Content-Transfer-Encoding: binary
+
+<!DOCTYPE html><html class="nl-narrow" style="--nl-vw: 433px; --nl-vh: 814px;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" type="text/css" href="cid:css-59d963fc-5261-47d8-9a50-b4914e3333c0@mhtml.blink" /><meta name="color-scheme" content="dark"></head><body>
+      <div class="nl-wrap">
+        <section class="nl-card" id="nl-card" aria-label="Build your own site on Netlify">
+          <button type="button" class="nl-icon-btn nl-tap nl-card-close" id="nl-card-close" aria-label="Close"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"></path></svg></button>
+          <h2><em>Build your own site with Netlify</em></h2>
+          <p>Describe what you want, and an AI agent designs, builds and deploys it in minutes.</p>
+          <form class="nl-prompt" action="https://app.netlify.com/start" method="get" target="_blank" rel="noopener">
+            <textarea name="prompt" rows="2" required="" maxlength="300" autocomplete="off" enterkeyhint="go" placeholder="A shop for my handmade surfboards…" aria-label="Describe the site you want to build"></textarea>
+            <button type="submit" class="nl-send nl-tap" aria-label="Build this site"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12.75v-9.5M3.9 7.35 8 3.25l4.1 4.1"></path></svg></button>
+            
+            
+            
+            
+            
+            
+          </form>
+          <div class="nl-or"><span>or</span></div>
+          <a class="nl-drop" href="https://app.netlify.com/drop?utm_source=netlify_badge&amp;utm_campaign=loops&amp;utm_medium=owned&amp;utm_content=drop&amp;utm_id=fef1aef7-9447-4428-8dbb-b505cfe7633e" target="_blank" rel="noopener">
+            <span>Drop a site you already have</span><span class="nl-arrow" aria-hidden="true">→</span>
+          </a>
+          <button type="button" class="nl-hide" id="nl-hide">Hide this badge</button>
+        </section>
+        <button type="button" class="nl-badge" id="nl-badge" aria-expanded="false" aria-controls="nl-card" aria-label="Powered by Netlify — build your own site">
+          <svg width="18" height="18" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+    <path fill="#fff" d="M17.9922 18.3225H14.005L13.6746 17.9921V14.005L14.005 13.6746H17.9922L18.3226 14.005V17.9921L17.9922 18.3225Z"></path>
+    <g fill="#05BDBA">
+      <path d="M9.6958 24.3311H9.35705L7.6661 22.6401V22.3041L10.2511 19.7164L12.042 19.7191L12.2808 19.9552V21.7461L9.6958 24.3311Z"></path>
+      <path d="M7.6661 9.69576V9.35701L9.35705 7.66606H9.6958L12.2808 10.2511V12.0392L12.042 12.2808H10.2511L7.6661 9.69576Z"></path>
+      <path d="M10.0457 17.4369H0.205466L0 17.2314V14.7658L0.205466 14.5603H10.0457L10.2511 14.7658V17.2314L10.0457 17.4369Z"></path>
+      <path d="M31.7945 17.4369H21.9544L21.7489 17.2314V14.7658L21.9544 14.5603H31.7945L32 14.7658V17.2314L31.7945 17.4369Z"></path>
+      <path d="M14.5631 10.0456V2.66547L14.7686 2.46001H17.2343L17.4396 2.66547V10.0456L17.2343 10.2511H14.7686L14.5631 10.0456Z"></path>
+      <path d="M14.5631 29.3316V21.9515L14.7686 21.746H17.2343L17.4396 21.9515V29.3316L17.2343 29.5371H14.7686L14.5631 29.3316Z"></path>
+    </g></svg>
+          <span><span class="nl-badge-label">Powered by</span> <span class="nl-badge-brand">Netlify</span></span>
+        </button>
+      </div>
+      
+    </body></html>
+------MultipartBoundary--Awm0TPx6grLMFsKM3V5b5IqdIOaHme2LwTfBtOA9HM----
+Content-Type: text/css
+Content-Transfer-Encoding: binary
+Content-Location: cid:css-59d963fc-5261-47d8-9a50-b4914e3333c0@mhtml.blink
+
+@charset "utf-8";
+
+:root { --nl-vw: 433px; --nl-vh: 814px; }
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0px; padding: 0px; background: transparent; overflow: hidden; }
+
+body { display: flex; align-items: flex-end; justify-content: flex-end; height: 100vh; padding: 8px 18px 18px 8px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.5; color: rgb(244, 249, 249); -webkit-font-smoothing: antialiased; }
+
+.nl-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: max-content; max-width: calc(var(--nl-vw,100vw) - 26px); }
+
+button { font-family: inherit; cursor: pointer; }
+
+:focus-visible { outline: rgb(50, 230, 226) solid 2px; outline-offset: 2px; border-radius: 6px; }
+
+.nl-icon-btn { position: relative; flex: 0 0 auto; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid transparent; background: transparent; color: rgb(213, 227, 230); transition: background 0.15s, color 0.15s; }
+
+.nl-icon-btn:hover { background: rgba(255, 255, 255, 0.08); color: rgb(244, 249, 249); }
+
+.nl-tap::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: max(100%, 44px); height: max(100%, 44px); }
+
+@keyframes nl-rise { 
+  0% { opacity: 0; transform: translateY(10px) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition: none !important; }
+}
+
+.nl-card { position: relative; display: none; width: min(340px,calc(var(--nl-vw,100vw) - 26px)); max-height: calc(var(--nl-vh,100vh) - 84px); overflow-y: auto; background: linear-gradient(rgb(19, 40, 50) 0%, rgb(14, 30, 37) 100%); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 18px; padding: 18px; transform-origin: right bottom; animation: 0.3s cubic-bezier(0.34, 1.4, 0.4, 1) 0s 1 normal both running nl-rise; }
+
+.nl-card.open { display: block; }
+
+.nl-card-close { position: absolute; top: 10px; right: 10px; }
+
+.nl-card h2 { margin: 0px; padding-right: 30px; font-size: 16px; font-weight: 750; letter-spacing: -0.015em; line-height: 1.35; }
+
+.nl-card h2 em { font-style: normal; background: linear-gradient(90deg, rgb(50, 230, 226), rgb(77, 124, 254), rgb(154, 107, 255)) text; -webkit-text-fill-color: transparent; color: transparent; }
+
+.nl-card p { margin: 8px 0px 0px; font-size: 12.5px; color: rgb(213, 227, 230); }
+
+.nl-prompt { position: relative; margin-top: 14px; background: rgb(16, 34, 43); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 14px; padding: 10px 12px; transition: border-color 0.15s, box-shadow 0.15s; }
+
+.nl-prompt:focus-within { border-color: rgb(5, 189, 186); box-shadow: rgba(5, 189, 186, 0.18) 0px 0px 0px 3px; }
+
+.nl-prompt textarea { display: block; width: 100%; height: 38px; resize: none; border: 0px; outline: none; background: transparent; color: rgb(244, 249, 249); font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 13px; line-height: 19px; padding: 0px 28px 0px 0px; }
+
+.nl-prompt textarea::placeholder { color: rgb(169, 189, 194); }
+
+.nl-send { position: absolute; right: 9px; bottom: 9px; width: 24px; height: 24px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; border: 0px; border-radius: 50%; background: rgb(5, 189, 186); color: rgb(2, 25, 27); transition: background 0.15s; }
+
+.nl-send:hover { background: rgb(50, 230, 226); }
+
+@media (pointer: coarse) {
+  .nl-prompt textarea { font-size: 16px; line-height: 21px; height: 42px; }
+}
+
+.nl-or { display: flex; align-items: center; gap: 10px; margin: 12px 0px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(169, 189, 194); }
+
+.nl-or::before, .nl-or::after { content: ""; flex: 1 1 0%; height: 1px; background: rgba(255, 255, 255, 0.09); }
+
+.nl-drop { display: flex; align-items: center; justify-content: space-between; gap: 6px; text-decoration: none; background: rgb(27, 58, 69); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: rgb(207, 224, 227); transition: background 0.15s, color 0.15s, border-color 0.15s; }
+
+.nl-drop:hover { background: rgb(34, 71, 83); color: rgb(244, 249, 249); border-color: rgba(50, 230, 226, 0.3); }
+
+.nl-drop .nl-arrow { transition: transform 0.18s cubic-bezier(0.34, 1.4, 0.4, 1); }
+
+.nl-drop:hover .nl-arrow { transform: translateX(3px); }
+
+.nl-badge { display: flex; align-items: center; gap: 9px; white-space: nowrap; border: 1px solid rgba(255, 255, 255, 0.09); background: linear-gradient(rgb(20, 43, 52), rgb(14, 30, 37)); color: rgb(244, 249, 249); border-radius: 999px; padding: 9px 14px 9px 11px; font-size: 13px; font-weight: 600; letter-spacing: 0.01em; transition: border-color 0.2s; }
+
+.nl-badge:hover { border-color: rgba(50, 230, 226, 0.26); }
+
+.nl-hide { display: block; width: 100%; margin-top: 10px; border: 0px; background: transparent; color: rgb(169, 189, 194); font-size: 11.5px; font-weight: 600; padding: 4px; border-radius: 8px; transition: color 0.15s; }
+
+.nl-hide:hover { color: rgb(213, 227, 230); text-decoration: underline; }
+
+.nl-badge-label { color: rgb(213, 227, 230); font-weight: 500; }
+
+.nl-badge-brand { font-weight: 750; }
+------MultipartBoundary--Awm0TPx6grLMFsKM3V5b5IqdIOaHme2LwTfBtOA9HM------

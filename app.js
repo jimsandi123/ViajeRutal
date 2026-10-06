@@ -35,7 +35,7 @@ function waTel(num, texto) {
 }
 function waSoporte(texto) { waTel(SOPORTE_WA, texto); }
 function compartirAplicacion() {
-  const enlace = "https://viajeruralcr.netlify.app";
+  const enlace = "https://ViajeRural.on.websim.com";
   window.open(`https://wa.me/?text=${encodeURIComponent(`Viaja con Viaje Rural. Descarga y comparte la aplicación: ${enlace}`)}`, "_blank");
 }
 
@@ -1335,54 +1335,8 @@ let pinVisibleCond = false, condCancelMostradoId = null;
 let mapCond = null, markerCond = null, markerPickCond = null;
 let pinIngresado = "";
 let notifRootRef = null, notifCb = null;
-// --- Bloqueo tras 3 intentos fallidos de PIN ---
-const PIN_MAX_INTENTOS = 3;
-const PIN_BLOQUEO_MS = 30000;
-let pinIntentosFallidos = 0;
-let pinBloqueadoHasta = 0;
-let pinBloqueoTimer = null;
-
-function resetPinIntentos() {
-  pinIntentosFallidos = 0;
-  pinBloqueadoHasta = 0;
-  if (pinBloqueoTimer) { clearInterval(pinBloqueoTimer); pinBloqueoTimer = null; }
-}
-
-function bloquearPinPorIntentos() {
-  pinBloqueadoHasta = Date.now() + PIN_BLOQUEO_MS;
-  otpInputs.forEach((input) => { input.disabled = true; input.value = ""; });
-  $("inpPinConductor").value = "";
-  pinIngresado = "";
-  $("btnConfirmarPin").disabled = true;
-  $("btnConfirmarPin").style.display = "none";
-  if (pinBloqueoTimer) clearInterval(pinBloqueoTimer);
-  const msgEl = $("pinValidMsg");
-  const upd = () => {
-    const rest = Math.max(0, Math.ceil((pinBloqueadoHasta - Date.now()) / 1000));
-    if (rest <= 0) {
-      clearInterval(pinBloqueoTimer);
-      pinBloqueoTimer = null;
-      pinIntentosFallidos = 0;
-      pinBloqueadoHasta = 0;
-      otpInputs.forEach((input) => { input.disabled = false; });
-      msgEl.className = "feedback";
-      msgEl.textContent = "";
-      if (otpInputs[0]) otpInputs[0].focus();
-      return;
-    }
-    msgEl.className = "feedback err";
-    msgEl.textContent = `🔒 Demasiados intentos. Espera ${rest} s para volver a intentar.`;
-  };
-  upd();
-  pinBloqueoTimer = setInterval(upd, 500);
-}
-
 const otpInputs = Array.from(document.querySelectorAll("[data-otp]"));
 function actualizarOtpConductor() {
-  if (Date.now() < pinBloqueadoHasta) {
-    otpInputs.forEach((input) => { input.value = ""; });
-    return;
-  }
   const pinInput = $("inpPinConductor");
   pinInput.value = otpInputs.map((input) => input.value).join("");
   pinInput.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1559,8 +1513,6 @@ function renderViajesConductor(vjs) {
     $("inpPinConductor").value = "";
     document.querySelectorAll("[data-otp]").forEach((input) => (input.value = ""));
     pinVisibleCond = false;
-    resetPinIntentos();
-    document.querySelectorAll("[data-otp]").forEach((input) => { input.disabled = false; });
   }
 
   if (activo) {
@@ -1588,50 +1540,15 @@ function renderViajesConductor(vjs) {
         $("pinValidMsg").textContent = "";
         pinInp.oninput = () => {
           const entered = pinInp.value.replace(/\D/g, "").slice(0, 3);
-          pinInp.oninput = () => {
-  if (Date.now() < pinBloqueadoHasta) {
-    otpInputs.forEach((input) => { input.value = ""; });
-    pinInp.value = "";
-    pinIngresado = "";
-    btnPin.disabled = true;
-    btnPin.style.display = "none";
-    return;
-  }
-  const entered = pinInp.value.replace(/\D/g, "").slice(0, 3);
-  pinInp.value = entered;
-
-  const esCorrecto = entered.length === 3 && entered === String(activo.pin);
-  pinIngresado = esCorrecto ? entered : "";
-
-  if (entered.length === 3 && !esCorrecto) {
-    pinIntentosFallidos++;
-    if (pinIntentosFallidos >= PIN_MAX_INTENTOS) {
-      bloquearPinPorIntentos();
-      return;
-    }
-    const restantes = PIN_MAX_INTENTOS - pinIntentosFallidos;
-    $("pinValidMsg").className = "feedback err";
-    $("pinValidMsg").textContent = `❌ PIN incorrecto. Te quedan ${restantes} intento${restantes === 1 ? "" : "s"}.`;
-    setTimeout(() => {
-      if (Date.now() >= pinBloqueadoHasta) {
-        otpInputs.forEach((input) => { input.value = ""; });
-        pinInp.value = "";
-        pinIngresado = "";
-        if (otpInputs[0]) otpInputs[0].focus();
-      }
-    }, 800);
-    btnPin.disabled = true;
-    btnPin.style.display = "none";
-    return;
-  }
-
-  btnPin.disabled = !pinIngresado;
-  $("pinValidMsg").className = pinIngresado ? "feedback ok" : "feedback";
-  btnPin.style.display = pinIngresado ? "block" : "none";
-  $("pinValidMsg").textContent = pinIngresado
-    ? "✅ PIN correcto. Presiona para iniciar el viaje y abrir Waze."
-    : "";
-};
+          pinInp.value = entered;
+          pinIngresado = entered.length === 3 && entered === String(activo.pin) ? entered : "";
+          btnPin.disabled = !pinIngresado;
+          $("pinValidMsg").className = pinIngresado ? "feedback ok" : entered.length === 3 ? "feedback err" : "feedback";
+          btnPin.style.display = pinIngresado ? "block" : "none";
+          $("pinValidMsg").textContent = pinIngresado
+            ? "✅ PIN correcto. Presiona para iniciar el viaje y abrir Waze."
+            : entered.length === 3 ? "❌ PIN incorrecto." : "";
+        };
       }
       $("btnAbrirPin").style.display = pinVerificado || pinVisibleCond ? "none" : "block";
       pinBox.style.display = !pinVerificado && pinVisibleCond ? "block" : "none";
@@ -1798,18 +1715,11 @@ function aceptarViaje(viajeId) {
 
 // ---------- Validar PIN e iniciar el viaje hacia el destino ----------
 $("btnConfirmarPin").addEventListener("click", () => {
-  if (Date.now() < pinBloqueadoHasta) {
-    const rest = Math.ceil((pinBloqueadoHasta - Date.now()) / 1000);
-    $("pinValidMsg").className = "feedback err";
-    $("pinValidMsg").textContent = `🔒 Bloqueado. Espera ${rest} s.`;
-    return;
-  }
   const activo = Object.values(dbActivoCache || {}).find((x) => x.conductorId === usuario?.id && x.estado === "aceptado");
   const btn = $("btnConfirmarPin");
   const pin = pinIngresado;
   if (!activo || pin !== String(activo.pin)) {
-    $("pinValidMsg").className = "feedback err";
-    $("pinValidMsg").textContent = "Ingresa el PIN correcto de 3 dígitos que te indique el pasajero.";
+    alert("Ingresa el PIN correcto de 3 dígitos que te indique el pasajero.");
     return;
   }
   btn.disabled = true;
